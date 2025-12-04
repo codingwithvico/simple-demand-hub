@@ -51,7 +51,7 @@ const Index = () => {
         
         <DemandInput onSubmit={addDemand} />
         
-        <main>
+        <main className="pt-3">
           {demands.length === 0 ? (
             <div className="px-4 py-8 text-center text-muted-foreground">
               Nenhuma demanda ainda. Adicione a primeira!

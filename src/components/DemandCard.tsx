@@ -10,7 +10,7 @@ interface DemandCardProps {
 
 const DemandCard = ({ demand, onDelete }: DemandCardProps) => {
   return (
-    <div className="border-b border-border px-4 py-3 hover:bg-muted/50 transition-colors">
+    <div className="mx-4 mb-3 border border-border rounded-lg px-4 py-3 hover:bg-muted/50 transition-colors">
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-foreground text-[15px] leading-relaxed break-words">
