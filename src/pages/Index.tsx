@@ -2,8 +2,12 @@ import { useState } from "react";
 import { Demand } from "@/types/demand";
 import DemandCard from "@/components/DemandCard";
 import DemandInput from "@/components/DemandInput";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 const Index = () => {
+  const { signOut } = useAuth();
   const [demands, setDemands] = useState<Demand[]>([
     {
       id: "1",
@@ -38,8 +42,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-xl mx-auto border-x border-border min-h-screen">
-        <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b border-border px-4 py-3">
+        <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
           <h1 className="text-foreground font-semibold text-lg">Demandas</h1>
+          <Button variant="ghost" size="icon" onClick={signOut}>
+            <LogOut className="h-4 w-4" />
+          </Button>
         </header>
         
         <DemandInput onSubmit={addDemand} />
