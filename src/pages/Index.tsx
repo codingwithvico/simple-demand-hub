@@ -48,7 +48,7 @@ const Index = () => {
         </Button>
       </header>
       
-      <div className="max-w-xl mx-auto border-x border-border min-h-[calc(100vh-52px)]">
+      <div className="max-w-xl mx-auto min-h-[calc(100vh-52px)]">
         <DemandInput onSubmit={addDemand} />
         
         <main className="pt-3">

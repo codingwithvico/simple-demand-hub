@@ -23,7 +23,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
   };
 
   return (
-    <div className="border-b border-border px-4 py-3 mt-4">
+    <div className="mx-4 mt-4 border border-border rounded-lg px-4 py-3">
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
