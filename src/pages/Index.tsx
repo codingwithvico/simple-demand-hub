@@ -41,14 +41,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-xl mx-auto border-x border-border min-h-screen">
-        <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
-          <h1 className="text-foreground font-semibold text-lg">Demandas</h1>
-          <Button variant="ghost" size="icon" onClick={signOut}>
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </header>
-        
+      <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
+        <h1 className="text-foreground font-semibold text-lg">Demandas</h1>
+        <Button variant="ghost" size="icon" onClick={signOut}>
+          <LogOut className="h-4 w-4" />
+        </Button>
+      </header>
+      
+      <div className="max-w-xl mx-auto border-x border-border min-h-[calc(100vh-52px)]">
         <DemandInput onSubmit={addDemand} />
         
         <main className="pt-3">
