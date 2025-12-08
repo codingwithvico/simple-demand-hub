@@ -55,7 +55,7 @@ export const useDemands = () => {
     setLoading(false);
   }, []);
 
-  // Real-time subscription
+  // Real-time subscription - atualiza apenas o card alterado
   useEffect(() => {
     fetchDemands();
 
@@ -63,9 +63,53 @@ export const useDemands = () => {
       .channel("demands-realtime")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "demands" },
+        { event: "INSERT", schema: "public", table: "demands" },
         () => {
+          // Para INSERT, refetch para pegar os dados completos com profiles
           fetchDemands();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "demands" },
+        async (payload) => {
+          // Para UPDATE, atualiza apenas o card específico
+          const updated = payload.new as any;
+          
+          // Busca os nomes dos profiles associados
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("id, name")
+            .in("id", [updated.claimed_by, updated.completed_by, updated.created_by].filter(Boolean));
+          
+          const getProfileName = (id: string | null) => 
+            profiles?.find(p => p.id === id)?.name || null;
+
+          setDemands(prev => prev.map(d => 
+            d.id === updated.id 
+              ? {
+                  ...d,
+                  status: updated.status,
+                  claimed_by: updated.claimed_by,
+                  claimed_at: updated.claimed_at ? new Date(updated.claimed_at) : null,
+                  completed_by: updated.completed_by,
+                  completed_at: updated.completed_at ? new Date(updated.completed_at) : null,
+                  version: updated.version,
+                  updated_at: new Date(updated.updated_at),
+                  claimed_by_name: getProfileName(updated.claimed_by),
+                  completed_by_name: getProfileName(updated.completed_by),
+                }
+              : d
+          ));
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "demands" },
+        (payload) => {
+          // Remove o card deletado
+          const deleted = payload.old as any;
+          setDemands(prev => prev.filter(d => d.id !== deleted.id));
         }
       )
       .subscribe();
