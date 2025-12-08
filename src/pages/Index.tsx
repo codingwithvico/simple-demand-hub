@@ -1,42 +1,27 @@
-import { useState } from "react";
-import { Demand } from "@/types/demand";
 import DemandCard from "@/components/DemandCard";
 import DemandInput from "@/components/DemandInput";
 import { useAuth } from "@/hooks/useAuth";
+import { useDemands } from "@/hooks/useDemands";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Loader2 } from "lucide-react";
 
 const Index = () => {
   const { signOut } = useAuth();
-  const [demands, setDemands] = useState<Demand[]>([
-    {
-      id: "1",
-      text: "Revisar documentação do projeto antes da reunião de sexta",
-      createdAt: new Date(Date.now() - 1000 * 60 * 30),
-    },
-    {
-      id: "2", 
-      text: "Finalizar relatório mensal de vendas",
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    },
-    {
-      id: "3",
-      text: "Enviar proposta comercial para o cliente ABC",
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5),
-    },
-  ]);
+  const { isMaster } = useUserRole();
+  const {
+    demands,
+    loading,
+    claimingId,
+    completingId,
+    createDemand,
+    claimDemand,
+    completeDemand,
+    deleteDemand,
+  } = useDemands();
 
-  const addDemand = (text: string) => {
-    const newDemand: Demand = {
-      id: crypto.randomUUID(),
-      text,
-      createdAt: new Date(),
-    };
-    setDemands([newDemand, ...demands]);
-  };
-
-  const deleteDemand = (id: string) => {
-    setDemands(demands.filter((d) => d.id !== id));
+  const handleSubmit = (text: string) => {
+    createDemand(text);
   };
 
   return (
@@ -47,21 +32,30 @@ const Index = () => {
           <LogOut className="h-4 w-4" />
         </Button>
       </header>
-      
+
       <div className="max-w-xl mx-auto min-h-[calc(100vh-52px)]">
-        <DemandInput onSubmit={addDemand} />
-        
+        <DemandInput onSubmit={handleSubmit} />
+
         <main className="pt-3">
-          {demands.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : demands.length === 0 ? (
             <div className="px-4 py-8 text-center text-muted-foreground">
               Nenhuma demanda ainda. Adicione a primeira!
             </div>
           ) : (
             demands.map((demand) => (
-              <DemandCard 
-                key={demand.id} 
-                demand={demand} 
+              <DemandCard
+                key={demand.id}
+                demand={demand}
                 onDelete={deleteDemand}
+                onClaim={claimDemand}
+                onComplete={completeDemand}
+                isClaiming={claimingId === demand.id}
+                isCompleting={completingId === demand.id}
+                isMaster={isMaster}
               />
             ))
           )}
