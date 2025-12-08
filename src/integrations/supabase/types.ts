@@ -167,6 +167,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_demand: {
+        Args: { demand_id: string; master_id: string }
+        Returns: {
+          claimed_at: string
+          claimed_by: string
+          id: string
+          status: Database["public"]["Enums"]["demand_status"]
+          was_updated: boolean
+        }[]
+      }
+      complete_demand: {
+        Args: { demand_id: string; master_id: string }
+        Returns: {
+          completed_at: string
+          completed_by: string
+          id: string
+          status: Database["public"]["Enums"]["demand_status"]
+          was_updated: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
