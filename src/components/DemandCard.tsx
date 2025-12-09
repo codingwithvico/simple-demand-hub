@@ -33,7 +33,7 @@ const DemandCard = ({
   const config = statusConfig[demand.status];
 
   return (
-    <div className="mx-4 mb-3 border border-border rounded-lg px-4 py-3 hover:bg-muted/30 transition-colors">
+    <div className={`mx-4 mb-3 border border-border rounded-lg px-4 py-3 hover:bg-muted/30 transition-colors ${demand.status === "completed" ? "opacity-50" : ""}`}>
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1 min-w-0">
           {demand.title && (
@@ -55,8 +55,14 @@ const DemandCard = ({
             </span>
           </div>
 
-          {demand.claimed_by_name && demand.status !== "open" && (
+          {demand.created_by_name && (
             <p className="text-muted-foreground text-xs mt-1">
+              Por {demand.created_by_name}
+            </p>
+          )}
+
+          {demand.claimed_by_name && demand.status !== "open" && (
+            <p className="text-muted-foreground text-xs">
               Assumida por {demand.claimed_by_name}
             </p>
           )}
