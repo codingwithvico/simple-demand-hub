@@ -187,6 +187,19 @@ export type Database = {
           was_updated: boolean
         }[]
       }
+      get_demand_stats: {
+        Args: {
+          end_date?: string
+          filter_team_id?: string
+          start_date?: string
+        }
+        Returns: {
+          completed_count: number
+          in_progress_count: number
+          open_count: number
+          total_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

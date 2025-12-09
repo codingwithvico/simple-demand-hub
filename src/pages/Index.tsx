@@ -1,5 +1,6 @@
 import DemandCard from "@/components/DemandCard";
 import DemandInput from "@/components/DemandInput";
+import { DemandStats } from "@/components/DemandStats";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemands } from "@/hooks/useDemands";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -33,7 +34,8 @@ const Index = () => {
         </Button>
       </header>
 
-      <div className="max-w-xl mx-auto min-h-[calc(100vh-52px)]">
+      <div className="max-w-xl mx-auto min-h-[calc(100vh-52px)] px-4">
+        {isMaster && <DemandStats />}
         <DemandInput onSubmit={handleSubmit} />
 
         <main className="pt-3">
