@@ -18,7 +18,8 @@ export const useDemands = () => {
         *,
         claimed_by_profile:profiles!demands_claimed_by_fkey(name),
         completed_by_profile:profiles!demands_completed_by_fkey(name),
-        created_by_profile:profiles!demands_created_by_fkey(name)
+        created_by_profile:profiles!demands_created_by_fkey(name),
+        team:teams!demands_team_id_fkey(name)
       `)
       .order("created_at", { ascending: false });
 
@@ -49,6 +50,7 @@ export const useDemands = () => {
       claimed_by_name: d.claimed_by_profile?.name || null,
       completed_by_name: d.completed_by_profile?.name || null,
       created_by_name: d.created_by_profile?.name || null,
+      team_name: d.team?.name || null,
     }));
 
     setDemands(mapped);
