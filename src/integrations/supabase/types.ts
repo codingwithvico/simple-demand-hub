@@ -207,6 +207,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_master: { Args: { uid: string }; Returns: boolean }
     }
     Enums: {
       app_role: "master" | "user"
