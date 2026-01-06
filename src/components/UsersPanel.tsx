@@ -168,15 +168,18 @@ export const UsersPanel = () => {
               {users.map((user) => (
                 <li
                   key={user.id}
-                  className="flex items-center justify-between p-2 border rounded text-sm"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded text-sm gap-2"
                 >
-                  <div>
-                    <span className="font-medium">{user.name}</span>
-                    <span className="text-muted-foreground ml-2">({user.email})</span>
+                  <div className="flex-1">
+                    <div className="font-medium">{user.name}</div>
+                    <div className="text-muted-foreground text-xs">{user.email}</div>
                   </div>
-                  {user.team_name && (
-                    <span className="text-muted-foreground">{user.team_name}</span>
-                  )}
+                  <div className="flex items-center gap-3 text-xs">
+                    {user.team_name && (
+                      <span className="bg-muted px-2 py-1 rounded">{user.team_name}</span>
+                    )}
+                    <span className="text-muted-foreground">Convencional</span>
+                  </div>
                 </li>
               ))}
             </ul>
