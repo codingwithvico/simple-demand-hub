@@ -30,7 +30,12 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 h-14 bg-card border-b border-border flex items-center justify-between px-4 z-10">
+        <h1 className="text-foreground font-semibold text-lg">Tramita+</h1>
+      </header>
+
       {/* Sidebar */}
       <Sidebar
         activeTab={activeTab}
@@ -40,7 +45,7 @@ const Index = () => {
       />
 
       {/* Main content */}
-      <main className="flex-1 ml-56">
+      <main className="ml-56 pt-14">
         <div className="max-w-2xl mx-auto min-h-screen px-6 py-6">
           {/* Demands tab */}
           {activeTab === "demands" && (

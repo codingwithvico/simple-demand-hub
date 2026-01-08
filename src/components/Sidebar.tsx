@@ -22,12 +22,7 @@ export const Sidebar = ({ activeTab, onTabChange, onSignOut, isMaster }: Sidebar
   const visibleTabs = tabs.filter(tab => !tab.masterOnly || isMaster);
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-56 bg-card border-r border-border flex flex-col">
-      {/* Logo / Brand */}
-      <div className="h-14 flex items-center px-4 border-b border-border">
-        <h1 className="text-foreground font-semibold text-lg">Tramita+</h1>
-      </div>
-
+    <aside className="fixed left-0 top-14 h-[calc(100vh-3.5rem)] w-56 bg-card border-r border-border flex flex-col">
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1">
         {visibleTabs.map((tab) => (
