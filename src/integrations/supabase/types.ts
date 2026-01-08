@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      demand_type_fields: {
+        Row: {
+          created_at: string | null
+          demand_type_id: string
+          field_type: string
+          id: string
+          label: string
+          options: Json | null
+          required: boolean
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string | null
+          demand_type_id: string
+          field_type: string
+          id?: string
+          label: string
+          options?: Json | null
+          required?: boolean
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string | null
+          demand_type_id?: string
+          field_type?: string
+          id?: string
+          label?: string
+          options?: Json | null
+          required?: boolean
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demand_type_fields_demand_type_id_fkey"
+            columns: ["demand_type_id"]
+            isOneToOne: false
+            referencedRelation: "demand_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      demand_types: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       demands: {
         Row: {
           claimed_at: string | null

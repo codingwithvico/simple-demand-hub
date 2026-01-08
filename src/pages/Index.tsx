@@ -4,7 +4,7 @@ import DemandInput from "@/components/DemandInput";
 import { DemandStats } from "@/components/DemandStats";
 import { TeamsPanel } from "@/components/TeamsPanel";
 import { UsersPanel } from "@/components/UsersPanel";
-import { Sidebar, AdminTab } from "@/components/Sidebar";
+import Sidebar, { AdminTab } from "@/components/Sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemands } from "@/hooks/useDemands";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -40,7 +40,7 @@ const Index = () => {
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onSignOut={signOut}
+        onLogout={signOut}
         isMaster={isMaster}
       />
 

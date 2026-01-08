@@ -1,22 +1,26 @@
-import { LayoutDashboard, Users, Building2, BarChart3, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, Building2, BarChart3, LogOut, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
-export type AdminTab = "demands" | "teams" | "users" | "reports";
+export type AdminTab = "demands" | "teams" | "users" | "reports" | "demand-types";
 
 interface SidebarProps {
   activeTab: AdminTab;
   onTabChange: (tab: AdminTab) => void;
-  onSignOut: () => void;
+  onLogout: () => void;
   isMaster: boolean;
 }
 
-export const Sidebar = ({ activeTab, onTabChange, onSignOut, isMaster }: SidebarProps) => {
+const Sidebar = ({ activeTab, onTabChange, onLogout, isMaster }: SidebarProps) => {
+  const navigate = useNavigate();
+  
   const tabs = [
-    { id: "demands" as const, label: "Demandas", icon: LayoutDashboard, masterOnly: false },
-    { id: "teams" as const, label: "Equipes", icon: Building2, masterOnly: true },
-    { id: "users" as const, label: "Usuários", icon: Users, masterOnly: true },
-    { id: "reports" as const, label: "Relatórios", icon: BarChart3, masterOnly: true },
+    { id: "demands" as const, label: "Demandas", icon: LayoutDashboard, masterOnly: false, route: null },
+    { id: "teams" as const, label: "Equipes", icon: Building2, masterOnly: true, route: null },
+    { id: "users" as const, label: "Usuários", icon: Users, masterOnly: true, route: null },
+    { id: "demand-types" as const, label: "Tipos de Demanda", icon: FileText, masterOnly: true, route: "/admin/demand-types" },
+    { id: "reports" as const, label: "Relatórios", icon: BarChart3, masterOnly: true, route: null },
   ];
 
   const visibleTabs = tabs.filter(tab => !tab.masterOnly || isMaster);
@@ -28,7 +32,13 @@ export const Sidebar = ({ activeTab, onTabChange, onSignOut, isMaster }: Sidebar
         {visibleTabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => onTabChange(tab.id)}
+            onClick={() => {
+              if (tab.route) {
+                navigate(tab.route);
+              } else {
+                onTabChange(tab.id);
+              }
+            }}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
               activeTab === tab.id
@@ -47,7 +57,7 @@ export const Sidebar = ({ activeTab, onTabChange, onSignOut, isMaster }: Sidebar
         <Button
           variant="ghost"
           size="sm"
-          onClick={onSignOut}
+          onClick={onLogout}
           className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
         >
           <LogOut className="h-4 w-4" />
@@ -57,3 +67,5 @@ export const Sidebar = ({ activeTab, onTabChange, onSignOut, isMaster }: Sidebar
     </aside>
   );
 };
+
+export default Sidebar;
