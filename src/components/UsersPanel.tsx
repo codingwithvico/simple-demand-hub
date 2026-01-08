@@ -131,13 +131,13 @@ export const UsersPanel = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {teamsLoading ? (
-                    <SelectItem value="" disabled>
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
                       Carregando...
-                    </SelectItem>
+                    </div>
                   ) : teams.length === 0 ? (
-                    <SelectItem value="" disabled>
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
                       Nenhuma equipe disponível
-                    </SelectItem>
+                    </div>
                   ) : (
                     teams.map((team) => (
                       <SelectItem key={team.id} value={team.id}>
