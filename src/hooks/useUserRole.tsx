@@ -11,13 +11,16 @@ export const useUserRole = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRole = async () => {
-      if (!user) {
-        setRole(null);
-        setLoading(false);
-        return;
-      }
+    if (!user) {
+      setRole(null);
+      setLoading(false);
+      return;
+    }
 
+    // Reset loading when user changes to prevent race condition
+    setLoading(true);
+
+    const fetchRole = async () => {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
