@@ -33,7 +33,7 @@ export const useTeams = () => {
         id: t.id,
         name: t.name,
         created_at: new Date(t.created_at!),
-      }))
+      })),
     );
     setLoading(false);
   }, []);

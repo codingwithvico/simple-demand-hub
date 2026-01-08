@@ -14,7 +14,7 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast.error("Preencha todos os campos");
       return;
@@ -42,7 +42,7 @@ const Auth = () => {
         <h1 className="text-2xl font-semibold text-foreground text-center mb-8">
           Tramita+
         </h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             type="email"
@@ -58,11 +58,7 @@ const Auth = () => {
             onChange={(e) => setPassword(e.target.value)}
             disabled={isLoading}
           />
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Entrando..." : "Entrar"}
           </Button>
         </form>

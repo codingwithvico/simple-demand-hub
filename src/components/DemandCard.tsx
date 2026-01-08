@@ -1,5 +1,11 @@
 import { DemandWithProfile } from "@/types/demand";
-import { MoreHorizontal, UserCheck, Check, Trash2, Loader2 } from "lucide-react";
+import {
+  MoreHorizontal,
+  UserCheck,
+  Check,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +47,7 @@ const DemandCard = ({
   const isLoading = isClaiming || isCompleting;
 
   return (
-    <div 
+    <div
       className={`mx-4 mb-3 border border-border rounded-lg overflow-hidden transition-colors ${isCompleted ? "opacity-50" : ""}`}
       data-id={demand.id}
     >
@@ -62,9 +68,9 @@ const DemandCard = ({
         {isMaster && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8 text-muted-foreground"
                 disabled={isLoading}
               >
@@ -77,7 +83,7 @@ const DemandCard = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {demand.status === "open" && onClaim && (
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => onClaim(demand.id)}
                   disabled={isClaiming}
                 >
@@ -86,7 +92,7 @@ const DemandCard = ({
                 </DropdownMenuItem>
               )}
               {demand.status !== "completed" && onComplete && (
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => onComplete(demand.id)}
                   disabled={isCompleting}
                 >
@@ -94,7 +100,7 @@ const DemandCard = ({
                   Marcar Concluída
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => onDelete(demand.id)}
                 className="text-destructive focus:text-destructive"
               >
@@ -122,13 +128,13 @@ const DemandCard = ({
       <div className="px-4 py-2 border-t border-border/50 flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant={config.variant}>{config.label}</Badge>
-          
+
           {demand.claimed_by_name && demand.status !== "open" && (
             <span className="text-muted-foreground text-xs">
               Assumida por {demand.claimed_by_name}
             </span>
           )}
-          
+
           {demand.completed_by_name && isCompleted && (
             <span className="text-muted-foreground text-xs">
               Concluída por {demand.completed_by_name}

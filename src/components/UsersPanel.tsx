@@ -81,7 +81,9 @@ export const UsersPanel = () => {
                 id="name"
                 placeholder="Nome completo"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 required
               />
             </div>
@@ -92,7 +94,9 @@ export const UsersPanel = () => {
                 type="email"
                 placeholder="email@exemplo.com"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 required
               />
             </div>
@@ -103,7 +107,9 @@ export const UsersPanel = () => {
                 type="password"
                 placeholder="Mínimo 6 caracteres"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 required
               />
             </div>
@@ -124,7 +130,9 @@ export const UsersPanel = () => {
               <Label htmlFor="team">Equipe</Label>
               <Select
                 value={formData.team_id}
-                onValueChange={(value) => setFormData({ ...formData, team_id: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, team_id: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma equipe" />
@@ -162,7 +170,9 @@ export const UsersPanel = () => {
           {loading ? (
             <p className="text-muted-foreground text-sm">Carregando...</p>
           ) : users.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Nenhum usuário cadastrado</p>
+            <p className="text-muted-foreground text-sm">
+              Nenhum usuário cadastrado
+            </p>
           ) : (
             <ul className="space-y-2">
               {users.map((user) => (
@@ -172,11 +182,15 @@ export const UsersPanel = () => {
                 >
                   <div className="flex-1">
                     <div className="font-medium">{user.name}</div>
-                    <div className="text-muted-foreground text-xs">{user.email}</div>
+                    <div className="text-muted-foreground text-xs">
+                      {user.email}
+                    </div>
                   </div>
                   <div className="flex items-center gap-3 text-xs">
                     {user.team_name && (
-                      <span className="bg-muted px-2 py-1 rounded">{user.team_name}</span>
+                      <span className="bg-muted px-2 py-1 rounded">
+                        {user.team_name}
+                      </span>
                     )}
                     <span className="text-muted-foreground">Convencional</span>
                   </div>

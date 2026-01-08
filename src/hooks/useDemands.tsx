@@ -14,13 +14,15 @@ export const useDemands = () => {
   const fetchDemands = useCallback(async () => {
     const { data, error } = await supabase
       .from("demands")
-      .select(`
+      .select(
+        `
         *,
         claimed_by_profile:profiles!demands_claimed_by_fkey(name),
         completed_by_profile:profiles!demands_completed_by_fkey(name),
         created_by_profile:profiles!demands_created_by_fkey(name),
         team:teams!demands_team_id_fkey(name)
-      `)
+      `,
+      )
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -69,7 +71,7 @@ export const useDemands = () => {
         () => {
           // Para INSERT, refetch para pegar os dados completos com profiles
           fetchDemands();
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -77,33 +79,46 @@ export const useDemands = () => {
         async (payload) => {
           // Para UPDATE, atualiza apenas o card específico
           const updated = payload.new as any;
-          
+
           // Busca os nomes dos profiles associados
           const { data: profiles } = await supabase
             .from("profiles")
             .select("id, name")
-            .in("id", [updated.claimed_by, updated.completed_by, updated.created_by].filter(Boolean));
-          
-          const getProfileName = (id: string | null) => 
-            profiles?.find(p => p.id === id)?.name || null;
+            .in(
+              "id",
+              [
+                updated.claimed_by,
+                updated.completed_by,
+                updated.created_by,
+              ].filter(Boolean),
+            );
 
-          setDemands(prev => prev.map(d => 
-            d.id === updated.id 
-              ? {
-                  ...d,
-                  status: updated.status,
-                  claimed_by: updated.claimed_by,
-                  claimed_at: updated.claimed_at ? new Date(updated.claimed_at) : null,
-                  completed_by: updated.completed_by,
-                  completed_at: updated.completed_at ? new Date(updated.completed_at) : null,
-                  version: updated.version,
-                  updated_at: new Date(updated.updated_at),
-                  claimed_by_name: getProfileName(updated.claimed_by),
-                  completed_by_name: getProfileName(updated.completed_by),
-                }
-              : d
-          ));
-        }
+          const getProfileName = (id: string | null) =>
+            profiles?.find((p) => p.id === id)?.name || null;
+
+          setDemands((prev) =>
+            prev.map((d) =>
+              d.id === updated.id
+                ? {
+                    ...d,
+                    status: updated.status,
+                    claimed_by: updated.claimed_by,
+                    claimed_at: updated.claimed_at
+                      ? new Date(updated.claimed_at)
+                      : null,
+                    completed_by: updated.completed_by,
+                    completed_at: updated.completed_at
+                      ? new Date(updated.completed_at)
+                      : null,
+                    version: updated.version,
+                    updated_at: new Date(updated.updated_at),
+                    claimed_by_name: getProfileName(updated.claimed_by),
+                    completed_by_name: getProfileName(updated.completed_by),
+                  }
+                : d,
+            ),
+          );
+        },
       )
       .on(
         "postgres_changes",
@@ -111,8 +126,8 @@ export const useDemands = () => {
         (payload) => {
           // Remove o card deletado
           const deleted = payload.old as any;
-          setDemands(prev => prev.filter(d => d.id !== deleted.id));
-        }
+          setDemands((prev) => prev.filter((d) => d.id !== deleted.id));
+        },
       )
       .subscribe();
 

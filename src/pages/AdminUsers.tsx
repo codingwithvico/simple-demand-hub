@@ -41,7 +41,9 @@ const AdminUsers = () => {
         </Button>
         <div>
           <h1 className="text-foreground font-semibold text-lg">Usuários</h1>
-          <p className="text-muted-foreground text-sm">Cadastro de usuários convencionais</p>
+          <p className="text-muted-foreground text-sm">
+            Cadastro de usuários convencionais
+          </p>
         </div>
       </header>
 

@@ -19,10 +19,12 @@ export const useUsers = () => {
   const fetchUsers = useCallback(async () => {
     const { data, error } = await supabase
       .from("profiles")
-      .select(`
+      .select(
+        `
         *,
         team:teams(name)
-      `)
+      `,
+      )
       .order("name");
 
     if (error) {
@@ -43,7 +45,7 @@ export const useUsers = () => {
         team_id: u.team_id,
         team_name: u.team?.name || null,
         created_at: new Date(u.created_at!),
-      }))
+      })),
     );
     setLoading(false);
   }, []);
@@ -62,7 +64,7 @@ export const useUsers = () => {
 
     try {
       const { data: session } = await supabase.auth.getSession();
-      
+
       const response = await supabase.functions.invoke("create-user", {
         body: data,
         headers: {

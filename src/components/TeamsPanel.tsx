@@ -34,7 +34,10 @@ export const TeamsPanel = () => {
             onChange={(e) => setNewTeamName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleCreate()}
           />
-          <Button onClick={handleCreate} disabled={isCreating || !newTeamName.trim()}>
+          <Button
+            onClick={handleCreate}
+            disabled={isCreating || !newTeamName.trim()}
+          >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -42,7 +45,9 @@ export const TeamsPanel = () => {
         {loading ? (
           <p className="text-muted-foreground text-sm">Carregando...</p>
         ) : teams.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Nenhuma equipe cadastrada</p>
+          <p className="text-muted-foreground text-sm">
+            Nenhuma equipe cadastrada
+          </p>
         ) : (
           <ul className="space-y-2">
             {teams.map((team) => (

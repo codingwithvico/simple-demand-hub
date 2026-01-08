@@ -93,7 +93,7 @@ const DemandTypes = () => {
         field_type: f.field_type as FieldType,
         required: f.required,
         options: (f.options as string[]) || [],
-      }))
+      })),
     );
   };
 
@@ -106,7 +106,7 @@ const DemandTypes = () => {
 
     // Verificar nome único
     const exists = demandTypes.some(
-      (t) => t.name.toLowerCase() === trimmedName.toLowerCase()
+      (t) => t.name.toLowerCase() === trimmedName.toLowerCase(),
     );
     if (exists) {
       toast.error("Já existe um tipo com esse nome");
@@ -148,10 +148,10 @@ const DemandTypes = () => {
   const handleUpdateField = (
     id: string,
     key: keyof LayoutField,
-    value: unknown
+    value: unknown,
   ) => {
     setFields((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, [key]: value } : f))
+      prev.map((f) => (f.id === id ? { ...f, [key]: value } : f)),
     );
   };
 
@@ -177,8 +177,8 @@ const DemandTypes = () => {
 
     setFields((prev) =>
       prev.map((f) =>
-        f.id === fieldId ? { ...f, options: [...f.options, trimmed] } : f
-      )
+        f.id === fieldId ? { ...f, options: [...f.options, trimmed] } : f,
+      ),
     );
   };
 
@@ -187,8 +187,8 @@ const DemandTypes = () => {
       prev.map((f) =>
         f.id === fieldId
           ? { ...f, options: f.options.filter((_, i) => i !== optionIndex) }
-          : f
-      )
+          : f,
+      ),
     );
   };
 
@@ -208,7 +208,7 @@ const DemandTypes = () => {
     }
 
     const selectWithoutOptions = fields.find(
-      (f) => f.field_type === "select" && f.options.length === 0
+      (f) => f.field_type === "select" && f.options.length === 0,
     );
     if (selectWithoutOptions) {
       toast.error("Campos de lista suspensa precisam ter opções");

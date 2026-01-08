@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { useDemandStats } from "@/hooks/useDemandStats";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { CalendarIcon, BarChart3, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -51,14 +55,24 @@ export function DemandStats() {
             <Button
               variant="outline"
               size="sm"
-              className={cn("justify-start text-left font-normal", !startDate && "text-muted-foreground")}
+              className={cn(
+                "justify-start text-left font-normal",
+                !startDate && "text-muted-foreground",
+              )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Data início"}
+              {startDate
+                ? format(startDate, "dd/MM/yyyy", { locale: ptBR })
+                : "Data início"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={startDate} onSelect={setStartDate} locale={ptBR} />
+            <Calendar
+              mode="single"
+              selected={startDate}
+              onSelect={setStartDate}
+              locale={ptBR}
+            />
           </PopoverContent>
         </Popover>
 
@@ -67,21 +81,36 @@ export function DemandStats() {
             <Button
               variant="outline"
               size="sm"
-              className={cn("justify-start text-left font-normal", !endDate && "text-muted-foreground")}
+              className={cn(
+                "justify-start text-left font-normal",
+                !endDate && "text-muted-foreground",
+              )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : "Data fim"}
+              {endDate
+                ? format(endDate, "dd/MM/yyyy", { locale: ptBR })
+                : "Data fim"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={endDate} onSelect={setEndDate} locale={ptBR} />
+            <Calendar
+              mode="single"
+              selected={endDate}
+              onSelect={setEndDate}
+              locale={ptBR}
+            />
           </PopoverContent>
         </Popover>
 
         <Button variant="outline" size="sm" onClick={handleToday}>
           Hoje
         </Button>
-        <Button variant="default" size="sm" onClick={handleFilter} disabled={loading}>
+        <Button
+          variant="default"
+          size="sm"
+          onClick={handleFilter}
+          disabled={loading}
+        >
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Filtrar
         </Button>
@@ -100,11 +129,15 @@ export function DemandStats() {
             <div className="text-xs text-muted-foreground">Abertas</div>
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/50">
-            <div className="text-2xl font-semibold">{stats.in_progress_count}</div>
+            <div className="text-2xl font-semibold">
+              {stats.in_progress_count}
+            </div>
             <div className="text-xs text-muted-foreground">Em andamento</div>
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/50">
-            <div className="text-2xl font-semibold">{stats.completed_count}</div>
+            <div className="text-2xl font-semibold">
+              {stats.completed_count}
+            </div>
             <div className="text-xs text-muted-foreground">Concluídas</div>
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/50">

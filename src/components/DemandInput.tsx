@@ -33,11 +33,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
         rows={2}
       />
       <div className="flex justify-end mt-2">
-        <Button 
-          onClick={handleSubmit} 
-          disabled={!text.trim()}
-          size="sm"
-        >
+        <Button onClick={handleSubmit} disabled={!text.trim()} size="sm">
           Publicar
         </Button>
       </div>
