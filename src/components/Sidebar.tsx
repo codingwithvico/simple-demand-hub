@@ -38,7 +38,7 @@ const Sidebar = ({
       label: "Demandas",
       icon: LayoutDashboard,
       masterOnly: false,
-      route: null,
+      route: "/",
     },
     {
       id: "teams" as const,
@@ -52,7 +52,7 @@ const Sidebar = ({
       label: "Usuários",
       icon: Users,
       masterOnly: true,
-      route: null,
+      route: "/admin/users",
     },
     {
       id: "demand-types" as const,

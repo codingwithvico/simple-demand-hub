@@ -79,8 +79,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Creating user: ${email} for team: ${team_id}`);
-
     // Create user in auth
     const { data: authData, error: createError } =
       await supabaseAdmin.auth.admin.createUser({
@@ -118,8 +116,6 @@ Deno.serve(async (req) => {
     if (roleError) {
       console.error("Error creating user role:", roleError);
     }
-
-    console.log(`User created successfully: ${userId}`);
 
     return new Response(JSON.stringify({ success: true, user_id: userId }), {
       status: 200,

@@ -6,11 +6,16 @@ import { Database } from "@/integrations/supabase/types";
 type AppRole = Database["public"]["Enums"]["app_role"];
 
 export const useUserRole = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setRole(null);
       setLoading(false);
@@ -28,17 +33,18 @@ export const useUserRole = () => {
         .maybeSingle();
 
       if (error) {
-        console.error("Error fetching user role:", error);
+        console.error("[useUserRole] Error fetching user role:", error);
       }
 
-      setRole(data?.role || null);
+      const finalRole = data?.role || null;
+      setRole(finalRole);
       setLoading(false);
     };
 
     fetchRole();
-  }, [user]);
+  }, [user, authLoading]);
 
   const isMaster = role === "master";
 
-  return { role, isMaster, loading };
+  return { role, isMaster, loading: loading || authLoading };
 };

@@ -81,9 +81,11 @@ const App = () => (
           <Route
             path="/admin/demand-types"
             element={
-              <ProtectedRoute>
-                <DemandTypes />
-              </ProtectedRoute>
+              <>
+                <ProtectedRoute>
+                  <DemandTypes />
+                </ProtectedRoute>
+              </>
             }
           />
           <Route path="*" element={<NotFound />} />
