@@ -114,12 +114,19 @@ const DemandCard = ({
 
       {/* Body */}
       <div className="px-4 py-3">
+        {demand.demand_type_name && (
+          <div className="mb-2">
+            <Badge variant="outline" className="text-xs">
+              {demand.demand_type_name}
+            </Badge>
+          </div>
+        )}
         {demand.title && (
           <h3 className="text-foreground font-medium text-sm mb-1">
             {demand.title}
           </h3>
         )}
-        <p className="text-foreground text-[15px] leading-relaxed break-words">
+        <p className="text-foreground text-[15px] leading-relaxed break-words whitespace-pre-line">
           {demand.description}
         </p>
       </div>

@@ -21,8 +21,11 @@ const Index = () => {
     deleteDemand,
   } = useDemands();
 
-  const handleSubmit = (text: string) => {
-    createDemand(text);
+  const handleSubmit = (data: {
+    demandTypeId: string;
+    fieldValues: { fieldId: string; value: string }[];
+  }) => {
+    createDemand(data);
   };
 
   return (

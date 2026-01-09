@@ -9,6 +9,7 @@ export interface Demand {
   status: DemandStatus;
   created_by: string | null;
   team_id: string | null;
+  demand_type_id: string | null;
   claimed_by: string | null;
   claimed_at: Date | null;
   completed_by: string | null;
@@ -23,4 +24,5 @@ export interface DemandWithProfile extends Demand {
   completed_by_name?: string | null;
   created_by_name?: string | null;
   team_name?: string | null;
+  demand_type_name?: string | null;
 }
