@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      demand_field_values: {
+        Row: {
+          created_at: string | null
+          demand_id: string
+          field_id: string
+          id: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          demand_id: string
+          field_id: string
+          id?: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          demand_id?: string
+          field_id?: string
+          id?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demand_field_values_demand_id_fkey"
+            columns: ["demand_id"]
+            isOneToOne: false
+            referencedRelation: "demands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demand_field_values_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "demand_type_fields"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demand_type_fields: {
         Row: {
           created_at: string | null
@@ -87,6 +126,7 @@ export type Database = {
           completed_by: string | null
           created_at: string | null
           created_by: string | null
+          demand_type_id: string | null
           description: string
           id: string
           status: Database["public"]["Enums"]["demand_status"] | null
@@ -102,6 +142,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string | null
           created_by?: string | null
+          demand_type_id?: string | null
           description: string
           id?: string
           status?: Database["public"]["Enums"]["demand_status"] | null
@@ -117,6 +158,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string | null
           created_by?: string | null
+          demand_type_id?: string | null
           description?: string
           id?: string
           status?: Database["public"]["Enums"]["demand_status"] | null
@@ -145,6 +187,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demands_demand_type_id_fkey"
+            columns: ["demand_type_id"]
+            isOneToOne: false
+            referencedRelation: "demand_types"
             referencedColumns: ["id"]
           },
           {

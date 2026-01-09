@@ -1,8 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Demand, DemandWithProfile } from "@/types/demand";
+import { DemandWithProfile } from "@/types/demand";
 import { useAuth } from "./useAuth";
 import { toast } from "@/hooks/use-toast";
+
+interface FieldValue {
+  fieldId: string;
+  value: string;
+}
+
+interface CreateDemandData {
+  demandTypeId: string;
+  fieldValues: FieldValue[];
+}
 
 export const useDemands = () => {
   const { user } = useAuth();
@@ -20,7 +30,8 @@ export const useDemands = () => {
         claimed_by_profile:profiles!demands_claimed_by_fkey(name),
         completed_by_profile:profiles!demands_completed_by_fkey(name),
         created_by_profile:profiles!demands_created_by_fkey(name),
-        team:teams!demands_team_id_fkey(name)
+        team:teams!demands_team_id_fkey(name),
+        demand_type:demand_types!demands_demand_type_id_fkey(id, name)
       `,
       )
       .order("created_at", { ascending: false });
@@ -42,6 +53,8 @@ export const useDemands = () => {
       status: d.status,
       created_by: d.created_by,
       team_id: d.team_id,
+      demand_type_id: d.demand_type_id,
+      demand_type_name: d.demand_type?.name || null,
       claimed_by: d.claimed_by,
       claimed_at: d.claimed_at ? new Date(d.claimed_at) : null,
       completed_by: d.completed_by,
@@ -136,23 +149,72 @@ export const useDemands = () => {
     };
   }, [fetchDemands]);
 
-  const createDemand = async (description: string, title?: string) => {
+  const createDemand = async (data: CreateDemandData) => {
     if (!user) return;
 
-    const { error } = await supabase.from("demands").insert({
-      description,
-      title: title || null,
-      created_by: user.id,
-    });
+    const { demandTypeId, fieldValues } = data;
 
-    if (error) {
-      console.error("Error creating demand:", error);
+    // Buscar os campos do tipo para gerar descrição
+    const { data: fields } = await supabase
+      .from("demand_type_fields")
+      .select("id, label")
+      .eq("demand_type_id", demandTypeId)
+      .order("sort_order", { ascending: true });
+
+    // Gerar descrição legível a partir dos campos
+    const fieldLabels = new Map(fields?.map((f) => [f.id, f.label]) || []);
+    const descriptionParts = fieldValues
+      .map((fv) => {
+        const label = fieldLabels.get(fv.fieldId);
+        return label ? `${label}: ${fv.value}` : fv.value;
+      })
+      .filter(Boolean);
+
+    const description = descriptionParts.join("\n");
+
+    // Criar a demanda
+    const { data: demand, error: demandError } = await supabase
+      .from("demands")
+      .insert({
+        description,
+        demand_type_id: demandTypeId,
+        created_by: user.id,
+      })
+      .select()
+      .single();
+
+    if (demandError) {
+      console.error("Error creating demand:", demandError);
       toast({
         title: "Erro ao criar demanda",
-        description: error.message,
+        description: demandError.message,
         variant: "destructive",
       });
+      return;
     }
+
+    // Inserir valores dos campos
+    if (fieldValues.length > 0) {
+      const valuesToInsert = fieldValues.map((fv) => ({
+        demand_id: demand.id,
+        field_id: fv.fieldId,
+        value: fv.value,
+      }));
+
+      const { error: valuesError } = await supabase
+        .from("demand_field_values")
+        .insert(valuesToInsert);
+
+      if (valuesError) {
+        console.error("Error inserting field values:", valuesError);
+        // Não falhar a criação se os valores não foram inseridos
+      }
+    }
+
+    toast({
+      title: "Demanda criada",
+      description: "Sua demanda foi publicada com sucesso.",
+    });
   };
 
   const claimDemand = async (demandId: string) => {
