@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminUsers from "./pages/AdminUsers";
 import DemandTypes from "./pages/DemandTypes";
+import Teams from "./pages/Teams";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -79,13 +81,27 @@ const App = () => (
             }
           />
           <Route
+            path="/admin/teams"
+            element={
+              <ProtectedRoute>
+                <Teams />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/demand-types"
             element={
-              <>
-                <ProtectedRoute>
-                  <DemandTypes />
-                </ProtectedRoute>
-              </>
+              <ProtectedRoute>
+                <DemandTypes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/reports"
+            element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
             }
           />
           <Route path="*" element={<NotFound />} />

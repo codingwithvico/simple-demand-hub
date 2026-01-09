@@ -1,25 +1,14 @@
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { UsersPanel } from "@/components/UsersPanel";
 import { supabase } from "@/integrations/supabase/client";
-import Sidebar, { AdminTab } from "@/components/Sidebar";
+import Sidebar from "@/components/Sidebar";
 import { Loader2 } from "lucide-react";
 
 const AdminUsers = () => {
-  const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isMaster, loading: roleLoading } = useUserRole();
-
-  const handleTabChange = (tab: AdminTab) => {
-    if (tab === "demands") {
-      navigate("/");
-    } else if (tab === "demand-types") {
-      navigate("/admin/demand-types");
-    } else if (tab === "teams" || tab === "reports") {
-      navigate("/");
-    }
-  };
 
   if (authLoading || roleLoading) {
     return (
@@ -47,9 +36,8 @@ const AdminUsers = () => {
       {/* Sidebar */}
       <Sidebar
         activeTab="users"
-        onTabChange={handleTabChange}
-        isMaster={isMaster}
         onLogout={() => supabase.auth.signOut()}
+        isMaster={isMaster}
       />
 
       {/* Main content */}

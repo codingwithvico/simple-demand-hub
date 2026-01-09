@@ -19,17 +19,11 @@ export type AdminTab =
 
 interface SidebarProps {
   activeTab: AdminTab;
-  onTabChange: (tab: AdminTab) => void;
   onLogout: () => void;
   isMaster: boolean;
 }
 
-const Sidebar = ({
-  activeTab,
-  onTabChange,
-  onLogout,
-  isMaster,
-}: SidebarProps) => {
+const Sidebar = ({ activeTab, onLogout, isMaster }: SidebarProps) => {
   const navigate = useNavigate();
 
   const tabs = [
@@ -45,7 +39,7 @@ const Sidebar = ({
       label: "Equipes",
       icon: Building2,
       masterOnly: true,
-      route: null,
+      route: "/admin/teams",
     },
     {
       id: "users" as const,
@@ -66,7 +60,7 @@ const Sidebar = ({
       label: "Relatórios",
       icon: BarChart3,
       masterOnly: true,
-      route: null,
+      route: "/admin/reports",
     },
   ];
 
@@ -79,13 +73,7 @@ const Sidebar = ({
         {visibleTabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => {
-              if (tab.route) {
-                navigate(tab.route);
-              } else {
-                onTabChange(tab.id);
-              }
-            }}
+            onClick={() => navigate(tab.route)}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
               activeTab === tab.id
