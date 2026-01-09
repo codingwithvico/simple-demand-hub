@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, Trash2, ChevronUp, ChevronDown, X } from "lucide-react";
-import Sidebar, { AdminTab } from "@/components/Sidebar";
+import Sidebar from "@/components/Sidebar";
 
 type FieldType = "short_text" | "long_text" | "select";
 
@@ -36,8 +36,7 @@ interface DemandType {
 
 const DemandTypes = () => {
   const { user, loading: authLoading } = useAuth();
-  const { isMaster, loading: roleLoading, role } = useUserRole();
-  const navigate = useNavigate();
+  const { isMaster, loading: roleLoading } = useUserRole();
 
   const [demandTypes, setDemandTypes] = useState<DemandType[]>([]);
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
@@ -45,19 +44,6 @@ const DemandTypes = () => {
   const [fields, setFields] = useState<LayoutField[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [isSaving, setSaving] = useState(false);
-
-  const handleTabChange = (tab: AdminTab) => {
-    if (tab === "demands") {
-      navigate("/");
-    } else if (tab === "users") {
-      navigate("/admin/users");
-    }
-    // As outras abas (teams, reports) são gerenciadas pelo Index
-    // então navegamos para "/" e deixamos o Index lidar com elas
-    else if (tab === "teams" || tab === "reports") {
-      navigate("/");
-    }
-  };
 
   // Carregar tipos existentes
   useEffect(() => {
@@ -315,7 +301,6 @@ const DemandTypes = () => {
       {/* Sidebar */}
       <Sidebar
         activeTab="demand-types"
-        onTabChange={handleTabChange}
         isMaster={isMaster}
         onLogout={() => supabase.auth.signOut()}
       />
