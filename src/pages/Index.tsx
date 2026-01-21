@@ -24,7 +24,7 @@ const Index = () => {
     completeDemand,
     unclaimDemand,
     deleteDemand,
-  } = useDemands(notificationSoundEnabled);
+  } = useDemands(notificationSoundEnabled, isMaster);
 
   // Solicita permissão para notificações do navegador ao carregar
   useEffect(() => {

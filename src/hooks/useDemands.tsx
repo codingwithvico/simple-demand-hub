@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DemandWithProfile } from "@/types/demand";
 import { useAuth } from "./useAuth";
@@ -14,17 +14,42 @@ interface CreateDemandData {
   fieldValues: FieldValue[];
 }
 
-// Áudio de notificação
-let notificationAudio: HTMLAudioElement | null = null;
+// Áudios de notificação
+let newDemandAudio: HTMLAudioElement | null = null;
+let demandClaimedAudio: HTMLAudioElement | null = null;
+let demandCompletedAudio: HTMLAudioElement | null = null;
 
-const getNotificationAudio = () => {
-  if (!notificationAudio) {
-    notificationAudio = new Audio(
+// Som para nova demanda (apenas para admins/masters)
+const getNewDemandAudio = () => {
+  if (!newDemandAudio) {
+    newDemandAudio = new Audio(
       "https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3",
     );
-    notificationAudio.volume = 0.5;
+    newDemandAudio.volume = 0.5;
   }
-  return notificationAudio;
+  return newDemandAudio;
+};
+
+// Som quando demanda é assumida (para quem criou a demanda)
+const getDemandClaimedAudio = () => {
+  if (!demandClaimedAudio) {
+    demandClaimedAudio = new Audio(
+      "https://assets.mixkit.co/active_storage/sfx/2867/2867-preview.mp3",
+    );
+    demandClaimedAudio.volume = 0.5;
+  }
+  return demandClaimedAudio;
+};
+
+// Som quando demanda é concluída (para quem criou a demanda)
+const getDemandCompletedAudio = () => {
+  if (!demandCompletedAudio) {
+    demandCompletedAudio = new Audio(
+      "https://assets.mixkit.co/active_storage/sfx/2576/2576-preview.mp3",
+    );
+    demandCompletedAudio.volume = 0.5;
+  }
+  return demandCompletedAudio;
 };
 
 // Solicita permissão para notificações do navegador
@@ -72,13 +97,20 @@ const sendBrowserNotification = (title: string, body: string) => {
   }
 };
 
-export const useDemands = (teamSoundEnabled: boolean = true) => {
+export const useDemands = (
+  teamSoundEnabled: boolean = true,
+  isMaster: boolean = false,
+) => {
   const { user } = useAuth();
   const [demands, setDemands] = useState<DemandWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [unclaimingId, setUnclaimingId] = useState<string | null>(null);
+
+  // Ref para acessar o estado atual das demands dentro do callback do realtime
+  const demandsRef = useRef<DemandWithProfile[]>([]);
+  demandsRef.current = demands;
 
   const fetchDemands = useCallback(async () => {
     const { data, error } = await supabase
@@ -142,12 +174,13 @@ export const useDemands = (teamSoundEnabled: boolean = true) => {
         { event: "INSERT", schema: "public", table: "demands" },
         async (payload) => {
           const newDemand = payload.new as any;
-          // Notifica se não for o próprio usuário que criou
-          if (newDemand.created_by !== user?.id) {
-            // Toca som de notificação
+          // Notifica apenas admins/masters quando uma nova demanda é criada
+          // e não é o próprio usuário que criou
+          if (newDemand.created_by !== user?.id && isMaster) {
+            // Toca som de notificação apenas para masters
             if (teamSoundEnabled) {
               try {
-                getNotificationAudio()
+                getNewDemandAudio()
                   .play()
                   .catch(() => {});
               } catch (e) {
@@ -198,6 +231,13 @@ export const useDemands = (teamSoundEnabled: boolean = true) => {
         async (payload) => {
           // Para UPDATE, atualiza apenas o card específico
           const updated = payload.new as any;
+          const oldData = payload.old as any;
+
+          // Busca a demanda atual do estado para comparar
+          // (oldData do realtime pode não ter todos os campos sem REPLICA IDENTITY FULL)
+          const currentDemand = demandsRef.current.find(
+            (d) => d.id === updated.id,
+          );
 
           // Busca os nomes dos profiles associados
           const { data: profiles } = await supabase
@@ -214,6 +254,71 @@ export const useDemands = (teamSoundEnabled: boolean = true) => {
 
           const getProfileName = (id: string | null) =>
             profiles?.find((p) => p.id === id)?.name || null;
+
+          // Detecta se a demanda foi assumida agora
+          // Usa o estado local para comparar, pois oldData pode não ter o status anterior
+          const wasJustClaimed =
+            updated.status === "in_progress" &&
+            updated.claimed_by &&
+            currentDemand?.status === "open";
+
+          // Notifica o criador da demanda quando ela é assumida
+          if (
+            wasJustClaimed &&
+            updated.created_by === user?.id &&
+            updated.claimed_by !== user?.id
+          ) {
+            if (teamSoundEnabled) {
+              try {
+                getDemandClaimedAudio()
+                  .play()
+                  .catch(() => {});
+              } catch (e) {
+                // Ignora erros de áudio
+              }
+            }
+            const claimerName = getProfileName(updated.claimed_by) || "Alguém";
+            sendBrowserNotification(
+              "🎯 Demanda assumida",
+              `${claimerName} assumiu sua demanda`,
+            );
+            toast({
+              title: "🎯 Demanda assumida",
+              description: `${claimerName} assumiu sua demanda`,
+            });
+          }
+
+          // Detecta se a demanda foi concluída agora
+          const wasJustCompleted =
+            updated.status === "completed" &&
+            currentDemand?.status !== "completed";
+
+          // Notifica o criador da demanda quando ela é concluída
+          if (
+            wasJustCompleted &&
+            updated.created_by === user?.id &&
+            updated.completed_by !== user?.id
+          ) {
+            if (teamSoundEnabled) {
+              try {
+                getDemandCompletedAudio()
+                  .play()
+                  .catch(() => {});
+              } catch (e) {
+                // Ignora erros de áudio
+              }
+            }
+            const completerName =
+              getProfileName(updated.completed_by) || "Alguém";
+            sendBrowserNotification(
+              "✅ Demanda concluída",
+              `${completerName} concluiu sua demanda`,
+            );
+            toast({
+              title: "✅ Demanda concluída",
+              description: `${completerName} concluiu sua demanda`,
+            });
+          }
 
           setDemands((prev) =>
             prev.map((d) =>
@@ -253,7 +358,7 @@ export const useDemands = (teamSoundEnabled: boolean = true) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchDemands, teamSoundEnabled, user?.id]);
+  }, [fetchDemands, teamSoundEnabled, user?.id, isMaster]);
 
   const createDemand = async (data: CreateDemandData) => {
     if (!user) return;
