@@ -2,6 +2,7 @@ import { DemandWithProfile } from "@/types/demand";
 import {
   MoreHorizontal,
   UserCheck,
+  UserX,
   Check,
   Trash2,
   Loader2,
@@ -16,14 +17,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DemandCardProps {
   demand: DemandWithProfile;
   onDelete: (id: string) => void;
   onClaim?: (id: string) => void;
   onComplete?: (id: string) => void;
+  onUnclaim?: (id: string) => void;
   isClaiming?: boolean;
   isCompleting?: boolean;
+  isUnclaiming?: boolean;
   isMaster?: boolean;
 }
 
@@ -38,13 +42,21 @@ const DemandCard = ({
   onDelete,
   onClaim,
   onComplete,
+  onUnclaim,
   isClaiming,
   isCompleting,
+  isUnclaiming,
   isMaster,
 }: DemandCardProps) => {
+  const { user } = useAuth();
   const config = statusConfig[demand.status];
   const isCompleted = demand.status === "completed";
-  const isLoading = isClaiming || isCompleting;
+  const isLoading = isClaiming || isCompleting || isUnclaiming;
+  
+  // Pode desassumir se é master, está em andamento, e foi quem assumiu
+  const canUnclaim = isMaster && 
+    demand.status === "in_progress" && 
+    demand.claimed_by === user?.id;
 
   return (
     <div
@@ -89,6 +101,15 @@ const DemandCard = ({
                 >
                   <UserCheck size={14} className="mr-2" />
                   Assumir
+                </DropdownMenuItem>
+              )}
+              {canUnclaim && onUnclaim && (
+                <DropdownMenuItem
+                  onClick={() => onUnclaim(demand.id)}
+                  disabled={isUnclaiming}
+                >
+                  <UserX size={14} className="mr-2" />
+                  Desassumir
                 </DropdownMenuItem>
               )}
               {demand.status !== "completed" && onComplete && (

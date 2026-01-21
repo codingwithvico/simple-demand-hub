@@ -14,12 +14,24 @@ interface CreateDemandData {
   fieldValues: FieldValue[];
 }
 
-export const useDemands = () => {
+// Áudio de notificação
+let notificationAudio: HTMLAudioElement | null = null;
+
+const getNotificationAudio = () => {
+  if (!notificationAudio) {
+    notificationAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3');
+    notificationAudio.volume = 0.5;
+  }
+  return notificationAudio;
+};
+
+export const useDemands = (teamSoundEnabled: boolean = true) => {
   const { user } = useAuth();
   const [demands, setDemands] = useState<DemandWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [completingId, setCompletingId] = useState<string | null>(null);
+  const [unclaimingId, setUnclaimingId] = useState<string | null>(null);
 
   const fetchDemands = useCallback(async () => {
     const { data, error } = await supabase
@@ -34,7 +46,7 @@ export const useDemands = () => {
         demand_type:demand_types!demands_demand_type_id_fkey(id, name)
       `,
       )
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: true });
 
     if (error) {
       console.error("Error fetching demands:", error);
@@ -81,7 +93,16 @@ export const useDemands = () => {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "demands" },
-        () => {
+        (payload) => {
+          const newDemand = payload.new as any;
+          // Toca som de notificação se não for o próprio usuário que criou
+          if (teamSoundEnabled && newDemand.created_by !== user?.id) {
+            try {
+              getNotificationAudio().play().catch(() => {});
+            } catch (e) {
+              // Ignora erros de áudio (ex: autoplay bloqueado)
+            }
+          }
           // Para INSERT, refetch para pegar os dados completos com profiles
           fetchDemands();
         },
@@ -147,7 +168,7 @@ export const useDemands = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchDemands]);
+  }, [fetchDemands, teamSoundEnabled, user?.id]);
 
   const createDemand = async (data: CreateDemandData) => {
     if (!user) return;
@@ -311,14 +332,55 @@ export const useDemands = () => {
     }
   };
 
+  const unclaimDemand = async (demandId: string) => {
+    if (!user) return;
+
+    setUnclaimingId(demandId);
+
+    try {
+      const { data, error } = await supabase.rpc("unclaim_demand", {
+        demand_id: demandId,
+        master_id: user.id,
+      });
+
+      if (error) {
+        toast({
+          title: "Erro ao desassumir demanda",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const result = data?.[0];
+      if (!result?.was_updated) {
+        await fetchDemands();
+        toast({
+          title: "Não foi possível desassumir",
+          description: "Esta demanda não pode ser desassumida.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Demanda liberada",
+          description: "A demanda voltou para aberta.",
+        });
+      }
+    } finally {
+      setUnclaimingId(null);
+    }
+  };
+
   return {
     demands,
     loading,
     claimingId,
     completingId,
+    unclaimingId,
     createDemand,
     claimDemand,
     completeDemand,
+    unclaimDemand,
     deleteDemand,
     refetch: fetchDemands,
   };
