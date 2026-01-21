@@ -6,6 +6,7 @@ export interface Team {
   id: string;
   name: string;
   created_at: Date;
+  notification_sound_enabled: boolean;
 }
 
 export const useTeams = () => {
@@ -29,10 +30,11 @@ export const useTeams = () => {
     }
 
     setTeams(
-      (data || []).map((t) => ({
+      (data || []).map((t: any) => ({
         id: t.id,
         name: t.name,
         created_at: new Date(t.created_at!),
+        notification_sound_enabled: t.notification_sound_enabled ?? true,
       })),
     );
     setLoading(false);
@@ -76,5 +78,25 @@ export const useTeams = () => {
     return true;
   };
 
-  return { teams, loading, createTeam, deleteTeam, refetch: fetchTeams };
+  const updateTeamSound = async (id: string, enabled: boolean) => {
+    const { error } = await supabase
+      .from("teams")
+      .update({ notification_sound_enabled: enabled })
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Erro ao atualizar configuração",
+        description: error.message,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    toast({ title: enabled ? "Som ativado" : "Som desativado" });
+    await fetchTeams();
+    return true;
+  };
+
+  return { teams, loading, createTeam, deleteTeam, updateTeamSound, refetch: fetchTeams };
 };

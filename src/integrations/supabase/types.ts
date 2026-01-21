@@ -242,16 +242,19 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          notification_sound_enabled: boolean | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           name: string
+          notification_sound_enabled?: boolean | null
         }
         Update: {
           created_at?: string | null
           id?: string
           name?: string
+          notification_sound_enabled?: boolean | null
         }
         Relationships: []
       }
@@ -322,6 +325,16 @@ export type Database = {
         Returns: boolean
       }
       is_master: { Args: { uid: string }; Returns: boolean }
+      unclaim_demand: {
+        Args: { demand_id: string; master_id: string }
+        Returns: {
+          claimed_at: string
+          claimed_by: string
+          id: string
+          status: Database["public"]["Enums"]["demand_status"]
+          was_updated: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "master" | "user"

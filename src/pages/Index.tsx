@@ -4,22 +4,26 @@ import Sidebar from "@/components/Sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemands } from "@/hooks/useDemands";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useUserTeamSettings } from "@/hooks/useUserTeamSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
   const { signOut } = useAuth();
   const { isMaster } = useUserRole();
+  const { notificationSoundEnabled } = useUserTeamSettings();
   const {
     demands,
     loading,
     claimingId,
     completingId,
+    unclaimingId,
     createDemand,
     claimDemand,
     completeDemand,
+    unclaimDemand,
     deleteDemand,
-  } = useDemands();
+  } = useDemands(notificationSoundEnabled);
 
   const handleSubmit = (data: {
     demandTypeId: string;
@@ -63,8 +67,10 @@ const Index = () => {
                   onDelete={deleteDemand}
                   onClaim={claimDemand}
                   onComplete={completeDemand}
+                  onUnclaim={unclaimDemand}
                   isClaiming={claimingId === demand.id}
                   isCompleting={completingId === demand.id}
+                  isUnclaiming={unclaimingId === demand.id}
                   isMaster={isMaster}
                 />
               ))
