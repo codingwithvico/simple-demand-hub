@@ -93,15 +93,37 @@ export const useDemands = (teamSoundEnabled: boolean = true) => {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "demands" },
-        (payload) => {
+        async (payload) => {
           const newDemand = payload.new as any;
-          // Toca som de notificação se não for o próprio usuário que criou
-          if (teamSoundEnabled && newDemand.created_by !== user?.id) {
-            try {
-              getNotificationAudio().play().catch(() => {});
-            } catch (e) {
-              // Ignora erros de áudio (ex: autoplay bloqueado)
+          // Notifica se não for o próprio usuário que criou
+          if (newDemand.created_by !== user?.id) {
+            // Toca som de notificação
+            if (teamSoundEnabled) {
+              try {
+                getNotificationAudio().play().catch(() => {});
+              } catch (e) {
+                // Ignora erros de áudio (ex: autoplay bloqueado)
+              }
             }
+            
+            // Busca o nome do criador e tipo de demanda para exibir no toast
+            const [profileRes, demandTypeRes] = await Promise.all([
+              newDemand.created_by 
+                ? supabase.from("profiles").select("name").eq("id", newDemand.created_by).single()
+                : Promise.resolve({ data: null }),
+              newDemand.demand_type_id 
+                ? supabase.from("demand_types").select("name").eq("id", newDemand.demand_type_id).single()
+                : Promise.resolve({ data: null }),
+            ]);
+            
+            const creatorName = profileRes.data?.name || "Usuário";
+            const demandTypeName = demandTypeRes.data?.name || "Nova demanda";
+            
+            // Toast visual de notificação
+            toast({
+              title: "📋 " + demandTypeName,
+              description: `${creatorName} publicou uma nova demanda`,
+            });
           }
           // Para INSERT, refetch para pegar os dados completos com profiles
           fetchDemands();
