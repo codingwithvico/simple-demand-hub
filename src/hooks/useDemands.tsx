@@ -19,7 +19,9 @@ let notificationAudio: HTMLAudioElement | null = null;
 
 const getNotificationAudio = () => {
   if (!notificationAudio) {
-    notificationAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3');
+    notificationAudio = new Audio(
+      "https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3",
+    );
     notificationAudio.volume = 0.5;
   }
   return notificationAudio;
@@ -100,25 +102,35 @@ export const useDemands = (teamSoundEnabled: boolean = true) => {
             // Toca som de notificação
             if (teamSoundEnabled) {
               try {
-                getNotificationAudio().play().catch(() => {});
+                getNotificationAudio()
+                  .play()
+                  .catch(() => {});
               } catch (e) {
                 // Ignora erros de áudio (ex: autoplay bloqueado)
               }
             }
-            
+
             // Busca o nome do criador e tipo de demanda para exibir no toast
             const [profileRes, demandTypeRes] = await Promise.all([
-              newDemand.created_by 
-                ? supabase.from("profiles").select("name").eq("id", newDemand.created_by).single()
+              newDemand.created_by
+                ? supabase
+                    .from("profiles")
+                    .select("name")
+                    .eq("id", newDemand.created_by)
+                    .single()
                 : Promise.resolve({ data: null }),
-              newDemand.demand_type_id 
-                ? supabase.from("demand_types").select("name").eq("id", newDemand.demand_type_id).single()
+              newDemand.demand_type_id
+                ? supabase
+                    .from("demand_types")
+                    .select("name")
+                    .eq("id", newDemand.demand_type_id)
+                    .single()
                 : Promise.resolve({ data: null }),
             ]);
-            
+
             const creatorName = profileRes.data?.name || "Usuário";
             const demandTypeName = demandTypeRes.data?.name || "Nova demanda";
-            
+
             // Toast visual de notificação
             toast({
               title: "📋 " + demandTypeName,
