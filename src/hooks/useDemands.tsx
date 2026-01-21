@@ -27,6 +27,51 @@ const getNotificationAudio = () => {
   return notificationAudio;
 };
 
+// Solicita permissão para notificações do navegador
+export const requestNotificationPermission = async (): Promise<boolean> => {
+  if (!("Notification" in window)) {
+    console.warn("Este navegador não suporta notificações");
+    return false;
+  }
+
+  if (Notification.permission === "granted") {
+    return true;
+  }
+
+  if (Notification.permission !== "denied") {
+    const permission = await Notification.requestPermission();
+    return permission === "granted";
+  }
+
+  return false;
+};
+
+// Envia notificação do sistema (funciona mesmo em outra aba)
+const sendBrowserNotification = (title: string, body: string) => {
+  if (!("Notification" in window) || Notification.permission !== "granted") {
+    return;
+  }
+
+  // Só envia notificação se a página não estiver visível
+  if (document.visibilityState === "hidden") {
+    const notification = new Notification(title, {
+      body,
+      icon: "/favicon.ico", // Pode trocar por um ícone personalizado
+      tag: "demand-notification", // Agrupa notificações do mesmo tipo
+      requireInteraction: false,
+    });
+
+    // Ao clicar na notificação, foca na aba da aplicação
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+
+    // Fecha automaticamente após 5 segundos
+    setTimeout(() => notification.close(), 5000);
+  }
+};
+
 export const useDemands = (teamSoundEnabled: boolean = true) => {
   const { user } = useAuth();
   const [demands, setDemands] = useState<DemandWithProfile[]>([]);
@@ -131,7 +176,13 @@ export const useDemands = (teamSoundEnabled: boolean = true) => {
             const creatorName = profileRes.data?.name || "Usuário";
             const demandTypeName = demandTypeRes.data?.name || "Nova demanda";
 
-            // Toast visual de notificação
+            // Notificação do navegador (funciona mesmo em outra aba)
+            sendBrowserNotification(
+              `📋 ${demandTypeName}`,
+              `${creatorName} publicou uma nova demanda`,
+            );
+
+            // Toast visual de notificação (só aparece se estiver na aba)
             toast({
               title: "📋 " + demandTypeName,
               description: `${creatorName} publicou uma nova demanda`,

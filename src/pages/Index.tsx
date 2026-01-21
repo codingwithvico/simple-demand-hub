@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import DemandCard from "@/components/DemandCard";
 import DemandInput from "@/components/DemandInput";
 import Sidebar from "@/components/Sidebar";
 import { useAuth } from "@/hooks/useAuth";
-import { useDemands } from "@/hooks/useDemands";
+import { useDemands, requestNotificationPermission } from "@/hooks/useDemands";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserTeamSettings } from "@/hooks/useUserTeamSettings";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,11 @@ const Index = () => {
     unclaimDemand,
     deleteDemand,
   } = useDemands(notificationSoundEnabled);
+
+  // Solicita permissão para notificações do navegador ao carregar
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
 
   const handleSubmit = (data: {
     demandTypeId: string;
