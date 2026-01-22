@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { DemandWithProfile } from "@/types/demand";
 import DemandCard from "./DemandCard";
+import DemandDetailDialog from "./DemandDetailDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { useLastComments } from "@/hooks/useComments";
 
 interface KanbanBoardProps {
   pendingDemands: DemandWithProfile[];
@@ -55,59 +58,83 @@ const KanbanBoard = ({
   unclaimingId,
   isMaster,
 }: KanbanBoardProps) => {
+  const [selectedDemand, setSelectedDemand] = useState<DemandWithProfile | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Buscar último comentário de todas as demandas
+  const allDemandIds = [...pendingDemands, ...completedDemands].map((d) => d.id);
+  const { data: lastComments = {} } = useLastComments(allDemandIds);
+
+  const handleCardClick = (demand: DemandWithProfile) => {
+    setSelectedDemand(demand);
+    setDialogOpen(true);
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
-      {/* Coluna: Demandas Recebidas / Em Fila */}
-      <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[calc(100vh-180px)]">
-        <KanbanColumn title="Demandas Recebidas" count={pendingDemands.length}>
-          {pendingDemands.length === 0 ? (
-            <div className="px-4 py-8 text-center text-muted-foreground text-sm">
-              Nenhuma demanda na fila
-            </div>
-          ) : (
-            pendingDemands.map((demand, index) => (
-              <DemandCard
-                key={demand.id}
-                demand={demand}
-                queuePosition={index + 1}
-                onDelete={onDelete}
-                onClaim={onClaim}
-                onComplete={onComplete}
-                onUnclaim={onUnclaim}
-                isClaiming={claimingId === demand.id}
-                isCompleting={completingId === demand.id}
-                isUnclaiming={unclaimingId === demand.id}
-                isMaster={isMaster}
-              />
-            ))
-          )}
-        </KanbanColumn>
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+        {/* Coluna: Demandas Recebidas / Em Fila */}
+        <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+          <KanbanColumn title="Demandas Recebidas" count={pendingDemands.length}>
+            {pendingDemands.length === 0 ? (
+              <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+                Nenhuma demanda na fila
+              </div>
+            ) : (
+              pendingDemands.map((demand, index) => (
+                <DemandCard
+                  key={demand.id}
+                  demand={demand}
+                  queuePosition={index + 1}
+                  lastComment={lastComments[demand.id]}
+                  onDelete={onDelete}
+                  onClaim={onClaim}
+                  onComplete={onComplete}
+                  onUnclaim={onUnclaim}
+                  onClick={() => handleCardClick(demand)}
+                  isClaiming={claimingId === demand.id}
+                  isCompleting={completingId === demand.id}
+                  isUnclaiming={unclaimingId === demand.id}
+                  isMaster={isMaster}
+                />
+              ))
+            )}
+          </KanbanColumn>
+        </div>
+
+        {/* Coluna: Demandas Finalizadas (Hoje) */}
+        <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+          <KanbanColumn
+            title="Finalizadas Hoje"
+            count={completedDemands.length}
+            variant="completed"
+          >
+            {completedDemands.length === 0 ? (
+              <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+                Nenhuma demanda concluída hoje
+              </div>
+            ) : (
+              completedDemands.map((demand) => (
+                <DemandCard
+                  key={demand.id}
+                  demand={demand}
+                  lastComment={lastComments[demand.id]}
+                  onDelete={onDelete}
+                  onClick={() => handleCardClick(demand)}
+                  isMaster={isMaster}
+                />
+              ))
+            )}
+          </KanbanColumn>
+        </div>
       </div>
 
-      {/* Coluna: Demandas Finalizadas (Hoje) */}
-      <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[calc(100vh-180px)]">
-        <KanbanColumn
-          title="Finalizadas Hoje"
-          count={completedDemands.length}
-          variant="completed"
-        >
-          {completedDemands.length === 0 ? (
-            <div className="px-4 py-8 text-center text-muted-foreground text-sm">
-              Nenhuma demanda concluída hoje
-            </div>
-          ) : (
-            completedDemands.map((demand) => (
-              <DemandCard
-                key={demand.id}
-                demand={demand}
-                onDelete={onDelete}
-                isMaster={isMaster}
-              />
-            ))
-          )}
-        </KanbanColumn>
-      </div>
-    </div>
+      <DemandDetailDialog
+        demand={selectedDemand}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
+    </>
   );
 };
 
