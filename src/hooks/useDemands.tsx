@@ -113,6 +113,11 @@ export const useDemands = (
   demandsRef.current = demands;
 
   const fetchDemands = useCallback(async () => {
+    // Calcula o início e fim do dia atual
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
     const { data, error } = await supabase
       .from("demands")
       .select(
@@ -125,6 +130,8 @@ export const useDemands = (
         demand_type:demand_types!demands_demand_type_id_fkey(id, name)
       `,
       )
+      .gte("created_at", startOfDay.toISOString())
+      .lt("created_at", endOfDay.toISOString())
       .order("created_at", { ascending: true });
 
     if (error) {
