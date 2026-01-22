@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import DemandCard from "@/components/DemandCard";
+import { useEffect, useMemo } from "react";
+import KanbanBoard from "@/components/KanbanBoard";
 import DemandInput from "@/components/DemandInput";
 import Sidebar from "@/components/Sidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +31,13 @@ const Index = () => {
     requestNotificationPermission();
   }, []);
 
+  // Separa demandas pendentes (open + in_progress) e concluídas
+  const { pendingDemands, completedDemands } = useMemo(() => {
+    const pending = demands.filter((d) => d.status !== "completed");
+    const completed = demands.filter((d) => d.status === "completed");
+    return { pendingDemands: pending, completedDemands: completed };
+  }, [demands]);
+
   const handleSubmit = (data: {
     demandTypeId: string;
     fieldValues: { fieldId: string; value: string }[];
@@ -53,33 +60,27 @@ const Index = () => {
       />
 
       {/* Main content */}
-      <main className="ml-56 pt-14">
-        <div className="max-w-2xl mx-auto min-h-screen px-6 py-6">
+      <main className="ml-56 pt-14 h-screen overflow-hidden">
+        <div className="h-full px-6 py-4 flex flex-col">
           <DemandInput onSubmit={handleSubmit} />
-          <div className="pt-3">
+          <div className="flex-1 pt-4 min-h-0">
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : demands.length === 0 ? (
-              <div className="px-4 py-8 text-center text-muted-foreground">
-                Nenhuma demanda ainda. Adicione a primeira!
-              </div>
             ) : (
-              demands.map((demand) => (
-                <DemandCard
-                  key={demand.id}
-                  demand={demand}
-                  onDelete={deleteDemand}
-                  onClaim={claimDemand}
-                  onComplete={completeDemand}
-                  onUnclaim={unclaimDemand}
-                  isClaiming={claimingId === demand.id}
-                  isCompleting={completingId === demand.id}
-                  isUnclaiming={unclaimingId === demand.id}
-                  isMaster={isMaster}
-                />
-              ))
+              <KanbanBoard
+                pendingDemands={pendingDemands}
+                completedDemands={completedDemands}
+                onDelete={deleteDemand}
+                onClaim={claimDemand}
+                onComplete={completeDemand}
+                onUnclaim={unclaimDemand}
+                claimingId={claimingId}
+                completingId={completingId}
+                unclaimingId={unclaimingId}
+                isMaster={isMaster}
+              />
             )}
           </div>
         </div>

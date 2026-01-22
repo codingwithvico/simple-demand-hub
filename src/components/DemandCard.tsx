@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface DemandCardProps {
   demand: DemandWithProfile;
+  queuePosition?: number;
   onDelete: (id: string) => void;
   onClaim?: (id: string) => void;
   onComplete?: (id: string) => void;
@@ -39,6 +40,7 @@ const statusConfig = {
 
 const DemandCard = ({
   demand,
+  queuePosition,
   onDelete,
   onClaim,
   onComplete,
@@ -66,6 +68,11 @@ const DemandCard = ({
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-border/50">
         <div className="flex items-center gap-2 min-w-0">
+          {queuePosition && (
+            <span className="flex items-center justify-center min-w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+              #{queuePosition}
+            </span>
+          )}
           <strong className="text-foreground text-sm truncate">
             {demand.created_by_name || "Anônimo"}
           </strong>
