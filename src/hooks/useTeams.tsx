@@ -9,11 +9,12 @@ export interface Team {
   notification_sound_enabled: boolean;
 }
 
-export const useTeams = () => {
+export const useTeams = (autoFetch: boolean = false) => {
   const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const fetchTeams = useCallback(async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from("teams")
       .select("*")
@@ -26,6 +27,7 @@ export const useTeams = () => {
         description: error.message,
         variant: "destructive",
       });
+      setLoading(false);
       return;
     }
 
@@ -41,8 +43,10 @@ export const useTeams = () => {
   }, []);
 
   useEffect(() => {
-    fetchTeams();
-  }, [fetchTeams]);
+    if (autoFetch) {
+      fetchTeams();
+    }
+  }, [autoFetch, fetchTeams]);
 
   const createTeam = async (name: string) => {
     const { error } = await supabase.from("teams").insert({ name });

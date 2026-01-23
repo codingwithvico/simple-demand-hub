@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUsers } from "@/hooks/useUsers";
 import { useTeams } from "@/hooks/useTeams";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,12 @@ import {
 } from "@/components/ui/select";
 import { UserPlus } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { UsersListModal } from "./UsersListModal";
 
 export const UsersPanel = () => {
-  const { users, loading, creating, createUser } = useUsers();
-  const { teams, loading: teamsLoading } = useTeams();
+  const { creating, createUser } = useUsers();
+  const { teams, loading: teamsLoading, refetch: refetchTeams } = useTeams();
+  const [teamsLoaded, setTeamsLoaded] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -26,6 +28,14 @@ export const UsersPanel = () => {
     team_id: "",
   });
   const [error, setError] = useState("");
+
+  // Carrega equipes apenas quando o select é aberto pela primeira vez
+  useEffect(() => {
+    if (!teamsLoaded && teams.length === 0) {
+      refetchTeams();
+      setTeamsLoaded(true);
+    }
+  }, [teamsLoaded, teams.length, refetchTeams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,38 +176,7 @@ export const UsersPanel = () => {
         </form>
 
         <div className="border-t pt-4">
-          <h3 className="font-medium mb-3">Usuários Cadastrados</h3>
-          {loading ? (
-            <p className="text-muted-foreground text-sm">Carregando...</p>
-          ) : users.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
-              Nenhum usuário cadastrado
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {users.map((user) => (
-                <li
-                  key={user.id}
-                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded text-sm gap-2"
-                >
-                  <div className="flex-1">
-                    <div className="font-medium">{user.name}</div>
-                    <div className="text-muted-foreground text-xs">
-                      {user.email}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs">
-                    {user.team_name && (
-                      <span className="bg-muted px-2 py-1 rounded">
-                        {user.team_name}
-                      </span>
-                    )}
-                    <span className="text-muted-foreground">Convencional</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+          <UsersListModal />
         </div>
       </CardContent>
     </Card>
