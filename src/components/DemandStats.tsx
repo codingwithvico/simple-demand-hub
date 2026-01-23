@@ -16,19 +16,19 @@ export function DemandStats() {
   const { stats, loading, fetchStats } = useDemandStats();
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [hasFiltered, setHasFiltered] = useState(false);
 
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+  // Não carrega automaticamente - só quando filtrar
 
   const handleFilter = () => {
     fetchStats(startDate, endDate);
+    setHasFiltered(true);
   };
 
   const handleClear = () => {
     setStartDate(undefined);
     setEndDate(undefined);
-    fetchStats();
+    setHasFiltered(false);
   };
 
   const handleToday = () => {
@@ -39,6 +39,7 @@ export function DemandStats() {
     setStartDate(today);
     setEndDate(tomorrow);
     fetchStats(today, tomorrow);
+    setHasFiltered(true);
   };
 
   return (
@@ -122,7 +123,11 @@ export function DemandStats() {
       </div>
 
       {/* Estatísticas */}
-      {stats && (
+      {!hasFiltered ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <p className="text-sm">Selecione um período ou clique em "Hoje" para ver os relatórios</p>
+        </div>
+      ) : stats ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="text-center p-3 rounded-lg bg-muted/50">
             <div className="text-2xl font-semibold">{stats.open_count}</div>
@@ -145,7 +150,7 @@ export function DemandStats() {
             <div className="text-xs text-muted-foreground">Total</div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

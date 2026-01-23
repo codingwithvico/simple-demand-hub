@@ -14,8 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, ChevronUp, ChevronDown, X } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, X, List, Loader2 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 
 type FieldType = "short_text" | "long_text" | "select";
@@ -44,13 +51,10 @@ const DemandTypes = () => {
   const [fields, setFields] = useState<LayoutField[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [isSaving, setSaving] = useState(false);
+  const [showTypesList, setShowTypesList] = useState(false);
+  const [typesLoading, setTypesLoading] = useState(false);
 
-  // Carregar tipos existentes
-  useEffect(() => {
-    if (user && isMaster) {
-      fetchDemandTypes();
-    }
-  }, [user, isMaster]);
+  // Não carrega automaticamente - só quando clicar no botão
 
   // Carregar campos quando selecionar um tipo
   useEffect(() => {
@@ -62,16 +66,25 @@ const DemandTypes = () => {
   }, [selectedTypeId]);
 
   const fetchDemandTypes = async () => {
+    setTypesLoading(true);
     const { data, error } = await supabase
       .from("demand_types")
       .select("id, name, created_at")
       .order("created_at", { ascending: false });
 
+    setTypesLoading(false);
     if (error) {
       toast.error("Erro ao carregar tipos de demanda");
       return;
     }
     setDemandTypes(data || []);
+  };
+
+  const handleShowTypes = () => {
+    setShowTypesList(true);
+    if (demandTypes.length === 0) {
+      fetchDemandTypes();
+    }
   };
 
   const fetchFields = async (typeId: string) => {
@@ -339,46 +352,61 @@ const DemandTypes = () => {
                 </Button>
               </div>
 
-              {/* Lista de tipos */}
-              <div className="bg-card border border-border rounded-lg p-4">
-                <h3 className="text-sm font-medium text-foreground mb-3">
-                  Tipos Existentes
-                </h3>
-                {demandTypes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum tipo criado
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {demandTypes.map((type) => (
-                      <div
-                        key={type.id}
-                        className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
-                          selectedTypeId === type.id
-                            ? "bg-primary/10 border border-primary/20"
-                            : "hover:bg-muted"
-                        }`}
-                        onClick={() => setSelectedTypeId(type.id)}
-                      >
-                        <span className="text-sm text-foreground truncate">
-                          {type.name}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteType(type.id);
+              {/* Botão para ver tipos existentes */}
+              <Dialog open={showTypesList} onOpenChange={setShowTypesList}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full" onClick={handleShowTypes}>
+                    <List className="h-4 w-4 mr-2" />
+                    Ver tipos existentes
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Tipos de Demanda</DialogTitle>
+                  </DialogHeader>
+                  {typesLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : demandTypes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nenhum tipo criado
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {demandTypes.map((type) => (
+                        <div
+                          key={type.id}
+                          className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
+                            selectedTypeId === type.id
+                              ? "bg-primary/10 border border-primary/20"
+                              : "hover:bg-muted"
+                          }`}
+                          onClick={() => {
+                            setSelectedTypeId(type.id);
+                            setShowTypesList(false);
                           }}
-                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
                         >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                          <span className="text-sm text-foreground truncate">
+                            {type.name}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteType(type.id);
+                            }}
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* Coluna direita - Layout dos campos */}

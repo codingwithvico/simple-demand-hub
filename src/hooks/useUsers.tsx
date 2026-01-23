@@ -11,12 +11,13 @@ export interface UserProfile {
   created_at: Date;
 }
 
-export const useUsers = () => {
+export const useUsers = (autoFetch: boolean = false) => {
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const fetchUsers = useCallback(async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
       .select(
@@ -34,6 +35,7 @@ export const useUsers = () => {
         description: error.message,
         variant: "destructive",
       });
+      setLoading(false);
       return;
     }
 
@@ -51,8 +53,10 @@ export const useUsers = () => {
   }, []);
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    if (autoFetch) {
+      fetchUsers();
+    }
+  }, [autoFetch, fetchUsers]);
 
   const createUser = async (data: {
     name: string;

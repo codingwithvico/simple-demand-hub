@@ -3,11 +3,11 @@ import { useTeams } from "@/hooks/useTeams";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Trash2, Plus, Users, Volume2, VolumeX } from "lucide-react";
+import { Plus, Users } from "lucide-react";
+import { TeamsListModal } from "./TeamsListModal";
 
 export const TeamsPanel = () => {
-  const { teams, loading, createTeam, deleteTeam, updateTeamSound } = useTeams();
+  const { createTeam } = useTeams();
   const [newTeamName, setNewTeamName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
@@ -43,45 +43,7 @@ export const TeamsPanel = () => {
           </Button>
         </div>
 
-        {loading ? (
-          <p className="text-muted-foreground text-sm">Carregando...</p>
-        ) : teams.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            Nenhuma equipe cadastrada
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {teams.map((team) => (
-              <li
-                key={team.id}
-                className="flex items-center justify-between p-3 border rounded"
-              >
-                <span className="font-medium">{team.name}</span>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    {team.notification_sound_enabled ? (
-                      <Volume2 className="h-4 w-4" />
-                    ) : (
-                      <VolumeX className="h-4 w-4" />
-                    )}
-                    <Switch
-                      checked={team.notification_sound_enabled}
-                      onCheckedChange={(checked) => updateTeamSound(team.id, checked)}
-                      aria-label="Som de notificação"
-                    />
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteTeam(team.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+        <TeamsListModal />
       </CardContent>
     </Card>
   );
