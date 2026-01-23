@@ -3,8 +3,8 @@ import { DemandWithProfile } from "@/types/demand";
 import DemandCard from "./DemandCard";
 import DemandDetailDialog from "./DemandDetailDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { useLastComments } from "@/hooks/useComments";
+import { Clock, PlayCircle, CheckCircle2 } from "lucide-react";
 
 interface KanbanBoardProps {
   openDemands: DemandWithProfile[];
@@ -24,31 +24,23 @@ const KanbanColumn = ({
   title,
   count,
   children,
-  variant = "default",
+  icon: Icon,
 }: {
   title: string;
   count: number;
   children: React.ReactNode;
-  variant?: "default" | "in-progress" | "completed";
+  icon: React.ElementType;
 }) => (
   <div className="flex flex-col h-full min-w-0">
-    <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50">
-      <h2 className="font-semibold text-foreground text-sm">{title}</h2>
-      <Badge
-        variant={
-          variant === "completed"
-            ? "default"
-            : variant === "in-progress"
-              ? "secondary"
-              : "outline"
-        }
-        className="text-xs"
-      >
+    <div className="flex items-center gap-2 px-4 py-4">
+      <Icon size={16} className="text-gray-400" />
+      <h2 className="font-medium text-gray-700 text-sm">{title}</h2>
+      <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
         {count}
-      </Badge>
+      </span>
     </div>
     <ScrollArea className="flex-1">
-      <div className="py-3">{children}</div>
+      <div className="pb-4">{children}</div>
     </ScrollArea>
   </div>
 );
@@ -85,12 +77,16 @@ const KanbanBoard = ({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 h-full">
         {/* Coluna: Demandas Recebidas / Em Fila */}
-        <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[calc(100vh-180px)]">
-          <KanbanColumn title="Demandas Recebidas" count={openDemands.length}>
+        <div className="bg-gray-50/80 rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+          <KanbanColumn
+            title="Demandas Recebidas"
+            count={openDemands.length}
+            icon={Clock}
+          >
             {openDemands.length === 0 ? (
-              <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+              <div className="px-4 py-12 text-center text-gray-400 text-sm">
                 Nenhuma demanda na fila
               </div>
             ) : (
@@ -116,14 +112,14 @@ const KanbanBoard = ({
         </div>
 
         {/* Coluna: Em Andamento (Assumidas) */}
-        <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+        <div className="bg-amber-50/50 rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-180px)]">
           <KanbanColumn
             title="Em Andamento"
             count={inProgressDemands.length}
-            variant="in-progress"
+            icon={PlayCircle}
           >
             {inProgressDemands.length === 0 ? (
-              <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+              <div className="px-4 py-12 text-center text-gray-400 text-sm">
                 Nenhuma demanda em andamento
               </div>
             ) : (
@@ -148,14 +144,14 @@ const KanbanBoard = ({
         </div>
 
         {/* Coluna: Demandas Finalizadas (Hoje) */}
-        <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+        <div className="bg-green-50/50 rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-180px)]">
           <KanbanColumn
             title="Finalizadas Hoje"
             count={completedDemands.length}
-            variant="completed"
+            icon={CheckCircle2}
           >
             {completedDemands.length === 0 ? (
-              <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+              <div className="px-4 py-12 text-center text-gray-400 text-sm">
                 Nenhuma demanda concluída hoje
               </div>
             ) : (

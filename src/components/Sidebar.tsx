@@ -67,18 +67,18 @@ const Sidebar = ({ activeTab, onLogout, isMaster }: SidebarProps) => {
   const visibleTabs = tabs.filter((tab) => !tab.masterOnly || isMaster);
 
   return (
-    <aside className="fixed left-0 top-14 h-[calc(100vh-3.5rem)] w-56 bg-card border-r border-border flex flex-col">
+    <aside className="fixed left-0 top-14 h-[calc(100vh-3.5rem)] w-56 bg-white border-r border-gray-100 flex flex-col">
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1">
+      <nav className="flex-1 p-4 space-y-1">
         {visibleTabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => navigate(tab.route)}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
               activeTab === tab.id
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "bg-gray-100 text-gray-900"
+                : "text-gray-500 hover:bg-gray-50 hover:text-gray-700",
             )}
           >
             <tab.icon className="h-4 w-4" />
@@ -88,12 +88,12 @@ const Sidebar = ({ activeTab, onLogout, isMaster }: SidebarProps) => {
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-border">
+      <div className="p-4 border-t border-gray-100">
         <Button
           variant="ghost"
           size="sm"
           onClick={onLogout}
-          className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+          className="w-full justify-start gap-3 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl"
         >
           <LogOut className="h-4 w-4" />
           Sair

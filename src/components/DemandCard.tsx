@@ -7,10 +7,10 @@ import {
   Trash2,
   Loader2,
   MessageSquare,
+  Clock,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface DemandCardProps {
   demand: DemandWithProfile;
@@ -38,10 +39,44 @@ interface DemandCardProps {
   isMaster?: boolean;
 }
 
-const statusConfig = {
-  open: { label: "Aberta", variant: "outline" as const },
-  in_progress: { label: "Em andamento", variant: "secondary" as const },
-  completed: { label: "Concluída", variant: "default" as const },
+// Gera iniciais do nome para o avatar
+const getInitials = (name: string | null) => {
+  if (!name) return "?";
+  const parts = name.trim().split(" ");
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+};
+
+// Gera cor de fundo baseada no nome
+const getAvatarColor = (name: string | null) => {
+  if (!name) return "bg-muted";
+  const colors = [
+    "bg-blue-100 text-blue-700",
+    "bg-green-100 text-green-700",
+    "bg-purple-100 text-purple-700",
+    "bg-orange-100 text-orange-700",
+    "bg-pink-100 text-pink-700",
+    "bg-cyan-100 text-cyan-700",
+    "bg-amber-100 text-amber-700",
+    "bg-rose-100 text-rose-700",
+  ];
+  const index = name.charCodeAt(0) % colors.length;
+  return colors[index];
+};
+
+// Formata tempo de forma curta (2d, 1h, etc)
+const formatShortTime = (date: Date) => {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  return `${diffDays}d`;
 };
 
 const DemandCard = ({
@@ -59,46 +94,57 @@ const DemandCard = ({
   isMaster,
 }: DemandCardProps) => {
   const { user } = useAuth();
-  const config = statusConfig[demand.status];
   const isCompleted = demand.status === "completed";
   const isLoading = isClaiming || isCompleting || isUnclaiming;
-  
+  const displayName = demand.created_by_name || "Anônimo";
+
   // Pode desassumir se é master, está em andamento, e foi quem assumiu
-  const canUnclaim = isMaster && 
-    demand.status === "in_progress" && 
+  const canUnclaim =
+    isMaster &&
+    demand.status === "in_progress" &&
     demand.claimed_by === user?.id;
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Não abrir o modal se clicar no menu dropdown
     const target = e.target as HTMLElement;
-    if (target.closest('[data-radix-dropdown-menu-trigger]') || target.closest('[role="menu"]')) {
+    if (
+      target.closest("[data-radix-dropdown-menu-trigger]") ||
+      target.closest('[role="menu"]')
+    ) {
       return;
     }
     onClick?.();
   };
 
+  // Conta comentários (simulado pelo lastComment)
+  const commentCount = lastComment ? 1 : 0;
+
   return (
     <div
-      className={`mx-4 mb-3 border border-border rounded-lg overflow-hidden transition-colors cursor-pointer hover:border-primary/50 ${isCompleted ? "opacity-50" : ""}`}
+      className={`mx-3 mb-2 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-gray-200 ${isCompleted ? "opacity-60" : ""}`}
       data-id={demand.id}
       onClick={handleCardClick}
     >
-      {/* Header */}
-      <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-border/50">
-        <div className="flex items-center gap-2 min-w-0">
-          {queuePosition && (
-            <span className="flex items-center justify-center min-w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-              #{queuePosition}
-            </span>
-          )}
-          <strong className="text-foreground text-sm truncate">
-            {demand.created_by_name || "Anônimo"}
-          </strong>
-          {demand.team_name && (
-            <small className="text-muted-foreground text-xs">
-              {demand.team_name}
-            </small>
-          )}
+      {/* Header com Avatar e Nome */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <Avatar className={`h-9 w-9 ${getAvatarColor(displayName)}`}>
+            <AvatarFallback
+              className={`text-xs font-medium ${getAvatarColor(displayName)}`}
+            >
+              {getInitials(displayName)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {displayName}
+            </p>
+            {demand.demand_type_name && (
+              <p className="text-xs text-gray-500 truncate">
+                {demand.demand_type_name}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Menu - apenas para masters */}
@@ -108,22 +154,23 @@ const DemandCard = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground"
+                className="h-7 w-7 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
                 disabled={isLoading}
                 onClick={(e) => e.stopPropagation()}
               >
                 {isLoading ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <Loader2 size={14} className="animate-spin" />
                 ) : (
-                  <MoreHorizontal size={16} />
+                  <MoreHorizontal size={14} />
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="min-w-[140px]">
               {demand.status === "open" && onClaim && (
                 <DropdownMenuItem
                   onClick={() => onClaim(demand.id)}
                   disabled={isClaiming}
+                  className="text-sm"
                 >
                   <UserCheck size={14} className="mr-2" />
                   Assumir
@@ -133,6 +180,7 @@ const DemandCard = ({
                 <DropdownMenuItem
                   onClick={() => onUnclaim(demand.id)}
                   disabled={isUnclaiming}
+                  className="text-sm"
                 >
                   <UserX size={14} className="mr-2" />
                   Desassumir
@@ -142,14 +190,15 @@ const DemandCard = ({
                 <DropdownMenuItem
                   onClick={() => onComplete(demand.id)}
                   disabled={isCompleting}
+                  className="text-sm"
                 >
                   <Check size={14} className="mr-2" />
-                  Marcar Concluída
+                  Concluir
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem
                 onClick={() => onDelete(demand.id)}
-                className="text-destructive focus:text-destructive"
+                className="text-sm text-destructive focus:text-destructive"
               >
                 <Trash2 size={14} className="mr-2" />
                 Excluir
@@ -159,62 +208,33 @@ const DemandCard = ({
         )}
       </div>
 
-      {/* Body */}
-      <div className="px-4 py-3">
-        {demand.demand_type_name && (
-          <div className="mb-2">
-            <Badge variant="outline" className="text-xs">
-              {demand.demand_type_name}
-            </Badge>
-          </div>
-        )}
-        {demand.title && (
-          <h3 className="text-foreground font-medium text-sm mb-1">
-            {demand.title}
-          </h3>
-        )}
-        <p className="text-foreground text-[15px] leading-relaxed break-words whitespace-pre-line">
-          {demand.description}
-        </p>
-
-        {/* Último comentário */}
-        {lastComment && (
-          <div className="mt-3 pt-3 border-t border-border/50">
-            <div className="flex items-start gap-2 text-xs text-muted-foreground">
-              <MessageSquare size={12} className="mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <span className="font-medium text-foreground/80">{lastComment.user_name}:</span>{" "}
-                <span className="line-clamp-2">{lastComment.content}</span>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      <div className="px-4 py-2 border-t border-border/50 flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant={config.variant}>{config.label}</Badge>
-
-          {demand.claimed_by_name && demand.status !== "open" && (
-            <span className="text-muted-foreground text-xs">
-              Assumida por {demand.claimed_by_name}
-            </span>
-          )}
-
-          {demand.completed_by_name && isCompleted && (
-            <span className="text-muted-foreground text-xs">
-              Concluída por {demand.completed_by_name}
-            </span>
-          )}
+      {/* Footer com tempo e comentários */}
+      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
+        <div className="flex items-center gap-1.5 text-gray-400">
+          <Clock size={13} />
+          <span className="text-xs font-medium">
+            {formatShortTime(demand.created_at)}
+          </span>
         </div>
-
-        <span className="text-muted-foreground text-xs">
-          {formatDistanceToNow(demand.created_at, {
-            addSuffix: true,
-            locale: ptBR,
-          })}
-        </span>
+        {commentCount > 0 && (
+          <div className="flex items-center gap-1.5 text-gray-400">
+            <MessageSquare size={13} />
+            <span className="text-xs font-medium">{commentCount}</span>
+          </div>
+        )}
+        {demand.claimed_by_name && demand.status === "in_progress" && (
+          <div className="flex items-center gap-1.5 ml-auto">
+            <Avatar
+              className={`h-5 w-5 ${getAvatarColor(demand.claimed_by_name)}`}
+            >
+              <AvatarFallback
+                className={`text-[10px] font-medium ${getAvatarColor(demand.claimed_by_name)}`}
+              >
+                {getInitials(demand.claimed_by_name)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        )}
       </div>
     </div>
   );

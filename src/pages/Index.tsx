@@ -52,10 +52,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-card border-b border-border flex items-center justify-between px-4 z-10">
-        <h1 className="text-foreground font-semibold text-lg">Tramita+</h1>
+      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 z-10">
+        <h1 className="text-gray-900 font-semibold text-lg">Tramita+</h1>
       </header>
 
       {/* Sidebar */}
@@ -67,7 +67,7 @@ const Index = () => {
 
       {/* Main content */}
       <main className="ml-56 pt-14 h-screen overflow-hidden">
-        <div className="h-full px-6 py-4 flex flex-col">
+        <div className="h-full px-6 py-5 flex flex-col">
           <DemandInput onSubmit={handleSubmit} />
           <div className="flex-1 pt-4 min-h-0">
             {loading ? (

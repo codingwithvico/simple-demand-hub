@@ -2,11 +2,7 @@ import { useState } from "react";
 import { DemandWithProfile } from "@/types/demand";
 import DemandDetailDialog from "./DemandDetailDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { useLastComments } from "@/hooks/useComments";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import {
   MessageSquare,
   Clock,
@@ -14,6 +10,7 @@ import {
   Circle,
   Loader2,
 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface UserDemandsListProps {
   demands: DemandWithProfile[];
@@ -22,22 +19,60 @@ interface UserDemandsListProps {
 const statusConfig = {
   open: {
     label: "Aguardando",
-    variant: "outline" as const,
     icon: Circle,
-    color: "text-muted-foreground",
+    bgColor: "bg-gray-100",
+    textColor: "text-gray-600",
   },
   in_progress: {
     label: "Em andamento",
-    variant: "secondary" as const,
     icon: Loader2,
-    color: "text-blue-500",
+    bgColor: "bg-amber-100",
+    textColor: "text-amber-700",
   },
   completed: {
     label: "Concluída",
-    variant: "default" as const,
     icon: CheckCircle2,
-    color: "text-green-500",
+    bgColor: "bg-green-100",
+    textColor: "text-green-700",
   },
+};
+
+// Gera iniciais do nome para o avatar
+const getInitials = (name: string | null) => {
+  if (!name) return "?";
+  const parts = name.trim().split(" ");
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+};
+
+// Gera cor de fundo baseada no nome
+const getAvatarColor = (name: string | null) => {
+  if (!name) return "bg-gray-200 text-gray-600";
+  const colors = [
+    "bg-blue-100 text-blue-700",
+    "bg-green-100 text-green-700",
+    "bg-purple-100 text-purple-700",
+    "bg-orange-100 text-orange-700",
+    "bg-pink-100 text-pink-700",
+    "bg-cyan-100 text-cyan-700",
+  ];
+  const index = name.charCodeAt(0) % colors.length;
+  return colors[index];
+};
+
+// Formata tempo de forma curta
+const formatShortTime = (date: Date) => {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  return `${diffDays}d`;
 };
 
 const UserDemandsList = ({ demands }: UserDemandsListProps) => {
@@ -61,13 +96,13 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
   if (demands.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="text-muted-foreground mb-4">
+        <div className="text-gray-300 mb-4">
           <MessageSquare size={48} strokeWidth={1} />
         </div>
-        <h3 className="text-lg font-medium text-foreground mb-2">
+        <h3 className="text-lg font-medium text-gray-700 mb-2">
           Nenhuma demanda criada hoje
         </h3>
-        <p className="text-sm text-muted-foreground max-w-md">
+        <p className="text-sm text-gray-500 max-w-md">
           Use o formulário acima para criar uma nova demanda. Ela aparecerá aqui
           e você poderá acompanhar o andamento.
         </p>
@@ -82,40 +117,46 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
           {/* Demandas pendentes */}
           {pendingDemands.length > 0 && (
             <div className="mb-6">
-              <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                <Clock size={16} className="text-muted-foreground" />
+              <h2 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                <Clock size={16} className="text-gray-400" />
                 Minhas Demandas em Aberto
-                <Badge variant="secondary" className="text-xs">
+                <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                   {pendingDemands.length}
-                </Badge>
+                </span>
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {pendingDemands.map((demand) => {
                   const config = statusConfig[demand.status];
                   const StatusIcon = config.icon;
                   const lastComment = lastComments[demand.id];
+                  const displayName = demand.created_by_name || "Você";
 
                   return (
-                    <Card
+                    <div
                       key={demand.id}
-                      className="p-4 cursor-pointer hover:border-primary/50 transition-colors"
+                      className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer"
                       onClick={() => handleCardClick(demand)}
                     >
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar
+                          className={`h-9 w-9 ${getAvatarColor(displayName)}`}
+                        >
+                          <AvatarFallback
+                            className={`text-xs font-medium ${getAvatarColor(displayName)}`}
+                          >
+                            {getInitials(displayName)}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="flex-1 min-w-0">
-                          {/* Header com tipo e status */}
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            {demand.demand_type_name && (
-                              <Badge variant="outline" className="text-xs">
-                                {demand.demand_type_name}
-                              </Badge>
-                            )}
-                            <Badge
-                              variant={config.variant}
-                              className="text-xs flex items-center gap-1"
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {demand.demand_type_name || "Demanda"}
+                            </p>
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full ${config.bgColor} ${config.textColor} flex items-center gap-1`}
                             >
                               <StatusIcon
-                                size={12}
+                                size={10}
                                 className={
                                   demand.status === "in_progress"
                                     ? "animate-spin"
@@ -123,62 +164,45 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                                 }
                               />
                               {config.label}
-                            </Badge>
+                            </span>
                           </div>
-
-                          {/* Título */}
                           {demand.title && (
-                            <h3 className="text-foreground font-medium text-sm mb-1">
+                            <p className="text-xs text-gray-500 truncate mt-0.5">
                               {demand.title}
-                            </h3>
+                            </p>
                           )}
+                        </div>
+                      </div>
 
-                          {/* Descrição */}
-                          <p className="text-foreground/80 text-sm line-clamp-2">
-                            {demand.description}
-                          </p>
-
-                          {/* Responsável (se assumida) */}
-                          {demand.claimed_by_name &&
-                            demand.status !== "open" && (
-                              <p className="text-xs text-muted-foreground mt-2">
-                                Responsável:{" "}
-                                <span className="font-medium">
-                                  {demand.claimed_by_name}
-                                </span>
-                              </p>
-                            )}
-
-                          {/* Último comentário */}
+                      {/* Footer com tempo e responsável */}
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1.5 text-gray-400">
+                            <Clock size={13} />
+                            <span className="text-xs font-medium">
+                              {formatShortTime(demand.created_at)}
+                            </span>
+                          </div>
                           {lastComment && (
-                            <div className="mt-3 pt-3 border-t border-border/50">
-                              <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                                <MessageSquare
-                                  size={12}
-                                  className="mt-0.5 shrink-0"
-                                />
-                                <div className="min-w-0">
-                                  <span className="font-medium text-foreground/80">
-                                    {lastComment.user_name}:
-                                  </span>{" "}
-                                  <span className="line-clamp-1">
-                                    {lastComment.content}
-                                  </span>
-                                </div>
-                              </div>
+                            <div className="flex items-center gap-1.5 text-gray-400">
+                              <MessageSquare size={13} />
+                              <span className="text-xs font-medium">1</span>
                             </div>
                           )}
                         </div>
-
-                        {/* Tempo */}
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {formatDistanceToNow(demand.created_at, {
-                            addSuffix: true,
-                            locale: ptBR,
-                          })}
-                        </span>
+                        {demand.claimed_by_name && demand.status !== "open" && (
+                          <Avatar
+                            className={`h-5 w-5 ${getAvatarColor(demand.claimed_by_name)}`}
+                          >
+                            <AvatarFallback
+                              className={`text-[10px] font-medium ${getAvatarColor(demand.claimed_by_name)}`}
+                            >
+                              {getInitials(demand.claimed_by_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
                       </div>
-                    </Card>
+                    </div>
                   );
                 })}
               </div>
@@ -188,87 +212,81 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
           {/* Demandas concluídas */}
           {completedDemands.length > 0 && (
             <div>
-              <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                 <CheckCircle2 size={16} className="text-green-500" />
                 Concluídas Hoje
-                <Badge variant="default" className="text-xs">
+                <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                   {completedDemands.length}
-                </Badge>
+                </span>
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {completedDemands.map((demand) => {
                   const lastComment = lastComments[demand.id];
+                  const displayName = demand.created_by_name || "Você";
 
                   return (
-                    <Card
+                    <div
                       key={demand.id}
-                      className="p-4 cursor-pointer hover:border-primary/50 transition-colors opacity-70"
+                      className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer opacity-70"
                       onClick={() => handleCardClick(demand)}
                     >
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar
+                          className={`h-9 w-9 ${getAvatarColor(displayName)}`}
+                        >
+                          <AvatarFallback
+                            className={`text-xs font-medium ${getAvatarColor(displayName)}`}
+                          >
+                            {getInitials(displayName)}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            {demand.demand_type_name && (
-                              <Badge variant="outline" className="text-xs">
-                                {demand.demand_type_name}
-                              </Badge>
-                            )}
-                            <Badge
-                              variant="default"
-                              className="text-xs flex items-center gap-1"
-                            >
-                              <CheckCircle2 size={12} />
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {demand.demand_type_name || "Demanda"}
+                            </p>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1">
+                              <CheckCircle2 size={10} />
                               Concluída
-                            </Badge>
+                            </span>
                           </div>
-
                           {demand.title && (
-                            <h3 className="text-foreground font-medium text-sm mb-1">
+                            <p className="text-xs text-gray-500 truncate mt-0.5">
                               {demand.title}
-                            </h3>
-                          )}
-
-                          <p className="text-foreground/80 text-sm line-clamp-2">
-                            {demand.description}
-                          </p>
-
-                          {demand.completed_by_name && (
-                            <p className="text-xs text-muted-foreground mt-2">
-                              Concluída por:{" "}
-                              <span className="font-medium">
-                                {demand.completed_by_name}
-                              </span>
                             </p>
                           )}
+                        </div>
+                      </div>
 
+                      {/* Footer */}
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1.5 text-gray-400">
+                            <Clock size={13} />
+                            <span className="text-xs font-medium">
+                              {formatShortTime(demand.created_at)}
+                            </span>
+                          </div>
                           {lastComment && (
-                            <div className="mt-3 pt-3 border-t border-border/50">
-                              <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                                <MessageSquare
-                                  size={12}
-                                  className="mt-0.5 shrink-0"
-                                />
-                                <div className="min-w-0">
-                                  <span className="font-medium text-foreground/80">
-                                    {lastComment.user_name}:
-                                  </span>{" "}
-                                  <span className="line-clamp-1">
-                                    {lastComment.content}
-                                  </span>
-                                </div>
-                              </div>
+                            <div className="flex items-center gap-1.5 text-gray-400">
+                              <MessageSquare size={13} />
+                              <span className="text-xs font-medium">1</span>
                             </div>
                           )}
                         </div>
-
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {formatDistanceToNow(demand.created_at, {
-                            addSuffix: true,
-                            locale: ptBR,
-                          })}
-                        </span>
+                        {demand.completed_by_name && (
+                          <Avatar
+                            className={`h-5 w-5 ${getAvatarColor(demand.completed_by_name)}`}
+                          >
+                            <AvatarFallback
+                              className={`text-[10px] font-medium ${getAvatarColor(demand.completed_by_name)}`}
+                            >
+                              {getInitials(demand.completed_by_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
                       </div>
-                    </Card>
+                    </div>
                   );
                 })}
               </div>

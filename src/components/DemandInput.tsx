@@ -19,10 +19,7 @@ interface FieldValue {
 }
 
 interface DemandInputProps {
-  onSubmit: (data: {
-    demandTypeId: string;
-    fieldValues: FieldValue[];
-  }) => void;
+  onSubmit: (data: { demandTypeId: string; fieldValues: FieldValue[] }) => void;
 }
 
 const DemandInput = ({ onSubmit }: DemandInputProps) => {
@@ -81,32 +78,41 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
 
   if (loading) {
     return (
-      <div className="mx-4 mt-4 border border-border rounded-lg px-4 py-6 flex justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <div className="bg-white rounded-2xl shadow-sm px-5 py-6 flex justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
       </div>
     );
   }
 
   if (demandTypes.length === 0) {
     return (
-      <div className="mx-4 mt-4 border border-border rounded-lg px-4 py-6 text-center">
-        <p className="text-muted-foreground text-sm">
-          Nenhum tipo de demanda configurado. Aguarde o administrador criar os tipos.
+      <div className="bg-white rounded-2xl shadow-sm px-5 py-6 text-center">
+        <p className="text-gray-500 text-sm">
+          Nenhum tipo de demanda configurado. Aguarde o administrador criar os
+          tipos.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="mx-4 mt-4 border border-border rounded-lg px-4 py-4 space-y-4">
+    <div className="bg-white rounded-2xl shadow-sm px-5 py-5 space-y-4">
       {/* Seletor de tipo de demanda */}
       <div className="space-y-2">
-        <Label htmlFor="demand-type">Tipo de Demanda</Label>
+        <Label
+          htmlFor="demand-type"
+          className="text-gray-700 text-sm font-medium"
+        >
+          Tipo de Demanda
+        </Label>
         <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
-          <SelectTrigger id="demand-type">
+          <SelectTrigger
+            id="demand-type"
+            className="rounded-xl border-gray-200 focus:ring-gray-300"
+          >
             <SelectValue placeholder="Selecione o tipo de demanda" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="rounded-xl">
             {demandTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 {type.name}
@@ -118,14 +124,15 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
 
       {/* Campos dinâmicos */}
       {selectedType && selectedType.fields.length > 0 && (
-        <div className="space-y-4 pt-2 border-t border-border">
+        <div className="space-y-4 pt-3 border-t border-gray-100">
           {selectedType.fields.map((field) => (
             <div key={field.id} className="space-y-2">
-              <Label htmlFor={field.id}>
+              <Label
+                htmlFor={field.id}
+                className="text-gray-700 text-sm font-medium"
+              >
                 {field.label}
-                {field.required && (
-                  <span className="text-destructive ml-1">*</span>
-                )}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
               </Label>
 
               {field.field_type === "short_text" && (
@@ -134,6 +141,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
                   value={fieldValues[field.id] || ""}
                   onChange={(e) => handleFieldChange(field.id, e.target.value)}
                   placeholder={`Digite ${field.label.toLowerCase()}`}
+                  className="rounded-xl border-gray-200 focus:ring-gray-300"
                 />
               )}
 
@@ -144,6 +152,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
                   onChange={(e) => handleFieldChange(field.id, e.target.value)}
                   placeholder={`Digite ${field.label.toLowerCase()}`}
                   rows={3}
+                  className="rounded-xl border-gray-200 focus:ring-gray-300"
                 />
               )}
 
@@ -152,10 +161,12 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
                   value={fieldValues[field.id] || ""}
                   onValueChange={(value) => handleFieldChange(field.id, value)}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder={`Selecione ${field.label.toLowerCase()}`} />
+                  <SelectTrigger className="rounded-xl border-gray-200 focus:ring-gray-300">
+                    <SelectValue
+                      placeholder={`Selecione ${field.label.toLowerCase()}`}
+                    />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl">
                     {field.options.map((option) => (
                       <SelectItem key={option} value={option}>
                         {option}
@@ -175,6 +186,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
           onClick={handleSubmit}
           disabled={!validateForm() || isSubmitting}
           size="sm"
+          className="rounded-xl bg-gray-900 hover:bg-gray-800 text-white px-5"
         >
           {isSubmitting ? (
             <>
