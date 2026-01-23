@@ -5,7 +5,6 @@ import { DemandStats } from "@/components/DemandStats";
 import { supabase } from "@/integrations/supabase/client";
 import Sidebar from "@/components/Sidebar";
 import { Loader2 } from "lucide-react";
-import Logo from "@/components/Logo";
 
 const Reports = () => {
   const { user, loading: authLoading } = useAuth();
@@ -13,7 +12,7 @@ const Reports = () => {
 
   if (authLoading || roleLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
@@ -28,12 +27,7 @@ const Reports = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-card border-b border-border flex items-center justify-between px-4 z-10">
-        <Logo />
-      </header>
-
+    <div className="min-h-screen bg-gray-100">
       {/* Sidebar */}
       <Sidebar
         activeTab="reports"
@@ -42,17 +36,27 @@ const Reports = () => {
       />
 
       {/* Main content */}
-      <main className="ml-56 pt-14">
-        <div className="max-w-2xl mx-auto px-6 py-6">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-foreground">
-              Relatórios
-            </h2>
-            <p className="text-sm text-muted-foreground">
+      <main className="ml-56 h-screen overflow-hidden">
+        <div className="h-full px-6 py-5 flex flex-col">
+          {/* Page Header com Breadcrumb */}
+          <div className="mb-5">
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+              <span>Administração</span>
+              <span>/</span>
+              <span className="text-gray-600">Relatórios</span>
+            </div>
+            {/* Título e Subtítulo */}
+            <h1 className="text-2xl font-semibold text-gray-900">Relatórios</h1>
+            <p className="text-sm text-gray-500 mt-1">
               Estatísticas e relatórios de demandas
             </p>
           </div>
-          <DemandStats />
+
+          {/* Content */}
+          <div className="flex-1 min-h-0 overflow-auto">
+            <DemandStats />
+          </div>
         </div>
       </main>
     </div>

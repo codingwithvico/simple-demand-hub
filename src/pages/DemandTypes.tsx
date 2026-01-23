@@ -32,7 +32,6 @@ import {
   Loader2,
 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import Logo from "@/components/Logo";
 
 type FieldType = "short_text" | "long_text" | "select";
 
@@ -291,14 +290,8 @@ const DemandTypes = () => {
   // Loading
   if (authLoading || roleLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground">Carregando permissões...</p>
-          <p className="text-xs text-muted-foreground mt-2">
-            authLoading: {authLoading.toString()}, roleLoading:{" "}
-            {roleLoading.toString()}
-          </p>
-        </div>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -314,12 +307,7 @@ const DemandTypes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-card border-b border-border flex items-center justify-between px-4 z-10">
-        <Logo />
-      </header>
-
+    <div className="min-h-screen bg-gray-100">
       {/* Sidebar */}
       <Sidebar
         activeTab="demand-types"
@@ -328,158 +316,168 @@ const DemandTypes = () => {
       />
 
       {/* Main content */}
-      <main className="ml-56 pt-14">
-        <div className="max-w-4xl mx-auto px-6 py-6">
-          {/* Cabeçalho */}
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-foreground">
+      <main className="ml-56 h-screen overflow-hidden">
+        <div className="h-full px-6 py-5 flex flex-col">
+          {/* Page Header com Breadcrumb */}
+          <div className="mb-5">
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+              <span>Administração</span>
+              <span>/</span>
+              <span className="text-gray-600">Tipos de Demanda</span>
+            </div>
+            {/* Título e Subtítulo */}
+            <h1 className="text-2xl font-semibold text-gray-900">
               Tipos de Demanda
-            </h2>
-            <p className="text-sm text-muted-foreground">
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
               Defina os layouts das demandas
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Coluna esquerda - Lista e criação */}
-            <div className="space-y-4">
-              {/* Criar novo tipo */}
-              <div className="bg-card border border-border rounded-lg p-4 space-y-3">
-                <Label htmlFor="typeName">Nome do Tipo de Demanda</Label>
-                <Input
-                  id="typeName"
-                  value={typeName}
-                  onChange={(e) => setTypeName(e.target.value)}
-                  placeholder="Ex: Solicitação de Material"
-                />
-                <Button
-                  onClick={handleCreateType}
-                  disabled={isCreating}
-                  className="w-full"
-                >
-                  {isCreating ? "Criando..." : "Criar Tipo de Demanda"}
-                </Button>
-              </div>
-
-              {/* Botão para ver tipos existentes */}
-              <Dialog open={showTypesList} onOpenChange={setShowTypesList}>
-                <DialogTrigger asChild>
+          {/* Content */}
+          <div className="flex-1 min-h-0 overflow-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Coluna esquerda - Lista e criação */}
+              <div className="space-y-4">
+                {/* Criar novo tipo */}
+                <div className="bg-card border border-border rounded-lg p-4 space-y-3">
+                  <Label htmlFor="typeName">Nome do Tipo de Demanda</Label>
+                  <Input
+                    id="typeName"
+                    value={typeName}
+                    onChange={(e) => setTypeName(e.target.value)}
+                    placeholder="Ex: Solicitação de Material"
+                  />
                   <Button
-                    variant="outline"
+                    onClick={handleCreateType}
+                    disabled={isCreating}
                     className="w-full"
-                    onClick={handleShowTypes}
                   >
-                    <List className="h-4 w-4 mr-2" />
-                    Ver tipos existentes
+                    {isCreating ? "Criando..." : "Criar Tipo de Demanda"}
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Tipos de Demanda</DialogTitle>
-                  </DialogHeader>
-                  {typesLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : demandTypes.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      Nenhum tipo criado
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {demandTypes.map((type) => (
-                        <div
-                          key={type.id}
-                          className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
-                            selectedTypeId === type.id
-                              ? "bg-primary/10 border border-primary/20"
-                              : "hover:bg-muted"
-                          }`}
-                          onClick={() => {
-                            setSelectedTypeId(type.id);
-                            setShowTypesList(false);
-                          }}
-                        >
-                          <span className="text-sm text-foreground truncate">
-                            {type.name}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteType(type.id);
-                            }}
-                            className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </DialogContent>
-              </Dialog>
-            </div>
+                </div>
 
-            {/* Coluna direita - Layout dos campos */}
-            <div className="lg:col-span-2">
-              {selectedTypeId ? (
-                <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-foreground">
-                      Layout da Demanda
-                    </h3>
+                {/* Botão para ver tipos existentes */}
+                <Dialog open={showTypesList} onOpenChange={setShowTypesList}>
+                  <DialogTrigger asChild>
                     <Button
                       variant="outline"
-                      size="sm"
-                      onClick={handleAddField}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Adicionar Campo
-                    </Button>
-                  </div>
-
-                  {fields.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-4 text-center">
-                      Nenhum campo adicionado. Clique em "Adicionar Campo" para
-                      começar.
-                    </p>
-                  ) : (
-                    <div className="space-y-4">
-                      {fields.map((field, index) => (
-                        <FieldEditor
-                          key={field.id}
-                          field={field}
-                          index={index}
-                          totalFields={fields.length}
-                          onUpdate={handleUpdateField}
-                          onRemove={handleRemoveField}
-                          onMove={handleMoveField}
-                          onAddOption={handleAddOption}
-                          onRemoveOption={handleRemoveOption}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="pt-4 border-t border-border">
-                    <Button
-                      onClick={handleSaveLayout}
-                      disabled={isSaving || fields.length === 0}
                       className="w-full"
+                      onClick={handleShowTypes}
                     >
-                      {isSaving ? "Salvando..." : "Salvar Layout"}
+                      <List className="h-4 w-4 mr-2" />
+                      Ver tipos existentes
                     </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Tipos de Demanda</DialogTitle>
+                    </DialogHeader>
+                    {typesLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : demandTypes.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Nenhum tipo criado
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {demandTypes.map((type) => (
+                          <div
+                            key={type.id}
+                            className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
+                              selectedTypeId === type.id
+                                ? "bg-primary/10 border border-primary/20"
+                                : "hover:bg-muted"
+                            }`}
+                            onClick={() => {
+                              setSelectedTypeId(type.id);
+                              setShowTypesList(false);
+                            }}
+                          >
+                            <span className="text-sm text-foreground truncate">
+                              {type.name}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteType(type.id);
+                              }}
+                              className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {/* Coluna direita - Layout dos campos */}
+              <div className="lg:col-span-2">
+                {selectedTypeId ? (
+                  <div className="bg-card border border-border rounded-lg p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-medium text-foreground">
+                        Layout da Demanda
+                      </h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddField}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Adicionar Campo
+                      </Button>
+                    </div>
+
+                    {fields.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-4 text-center">
+                        Nenhum campo adicionado. Clique em "Adicionar Campo"
+                        para começar.
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {fields.map((field, index) => (
+                          <FieldEditor
+                            key={field.id}
+                            field={field}
+                            index={index}
+                            totalFields={fields.length}
+                            onUpdate={handleUpdateField}
+                            onRemove={handleRemoveField}
+                            onMove={handleMoveField}
+                            onAddOption={handleAddOption}
+                            onRemoveOption={handleRemoveOption}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="pt-4 border-t border-border">
+                      <Button
+                        onClick={handleSaveLayout}
+                        disabled={isSaving || fields.length === 0}
+                        className="w-full"
+                      >
+                        {isSaving ? "Salvando..." : "Salvar Layout"}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="bg-card border border-border rounded-lg p-8 text-center">
-                  <p className="text-muted-foreground">
-                    Selecione ou crie um tipo de demanda para editar o layout
-                  </p>
-                </div>
-              )}
+                ) : (
+                  <div className="bg-card border border-border rounded-lg p-8 text-center">
+                    <p className="text-muted-foreground">
+                      Selecione ou crie um tipo de demanda para editar o layout
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
