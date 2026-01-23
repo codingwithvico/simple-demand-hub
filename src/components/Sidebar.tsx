@@ -5,6 +5,7 @@ import {
   BarChart3,
   LogOut,
   FileText,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -67,37 +68,40 @@ const Sidebar = ({ activeTab, onLogout, isMaster }: SidebarProps) => {
   const visibleTabs = tabs.filter((tab) => !tab.masterOnly || isMaster);
 
   return (
-    <aside className="fixed left-0 top-14 h-[calc(100vh-3.5rem)] w-56 bg-white border-r border-gray-100 flex flex-col">
+    <aside className="fixed left-0 top-0 h-screen w-56 bg-gray-100 flex flex-col">
+      {/* Logo */}
+      <div className="px-5 py-6">
+        <h1 className="text-gray-900 font-semibold text-lg">Tramita+</h1>
+      </div>
+
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 px-4 space-y-0.5">
         {visibleTabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => navigate(tab.route)}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
               activeTab === tab.id
-                ? "bg-gray-100 text-gray-900"
-                : "text-gray-500 hover:bg-gray-50 hover:text-gray-700",
+                ? "bg-white text-gray-900 font-medium shadow-sm"
+                : "text-gray-500 hover:text-gray-700",
             )}
           >
-            <tab.icon className="h-4 w-4" />
+            <tab.icon className="h-4 w-4" strokeWidth={1.5} />
             {tab.label}
           </button>
         ))}
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-100">
-        <Button
-          variant="ghost"
-          size="sm"
+      <div className="px-4 py-4">
+        <button
           onClick={onLogout}
-          className="w-full justify-start gap-3 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 hover:text-gray-700 transition-all"
         >
-          <LogOut className="h-4 w-4" />
-          Sair
-        </Button>
+          <HelpCircle className="h-4 w-4" strokeWidth={1.5} />
+          Ajuda & Suporte
+        </button>
       </div>
     </aside>
   );

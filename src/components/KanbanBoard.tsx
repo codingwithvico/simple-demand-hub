@@ -79,7 +79,7 @@ const KanbanBoard = ({
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 h-full">
         {/* Coluna: Demandas Recebidas / Em Fila */}
-        <div className="bg-gray-50/80 rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+        <div className="bg-white/60 rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-180px)]">
           <KanbanColumn
             title="Demandas Recebidas"
             count={openDemands.length}
@@ -112,7 +112,7 @@ const KanbanBoard = ({
         </div>
 
         {/* Coluna: Em Andamento (Assumidas) */}
-        <div className="bg-amber-50/50 rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+        <div className="bg-amber-50/60 rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-180px)]">
           <KanbanColumn
             title="Em Andamento"
             count={inProgressDemands.length}
@@ -144,7 +144,7 @@ const KanbanBoard = ({
         </div>
 
         {/* Coluna: Demandas Finalizadas (Hoje) */}
-        <div className="bg-green-50/50 rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+        <div className="bg-green-50/60 rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-180px)]">
           <KanbanColumn
             title="Finalizadas Hoje"
             count={completedDemands.length}

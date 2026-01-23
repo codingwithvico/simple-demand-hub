@@ -7,12 +7,26 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDemands, requestNotificationPermission } from "@/hooks/useDemands";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserTeamSettings } from "@/hooks/useUserTeamSettings";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+
+// Formata a data atual
+const formatCurrentDate = () => {
+  const now = new Date();
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  };
+  return now.toLocaleDateString("pt-BR", options);
+};
 
 const Index = () => {
   const { signOut } = useAuth();
   const { isMaster } = useUserRole();
+  const { profile } = useUserProfile();
   const { notificationSoundEnabled } = useUserTeamSettings();
   const {
     demands,
@@ -52,12 +66,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 z-10">
-        <h1 className="text-gray-900 font-semibold text-lg">Tramita+</h1>
-      </header>
-
+    <div className="min-h-screen bg-gray-100">
       {/* Sidebar */}
       <Sidebar
         activeTab="demands"
@@ -66,10 +75,32 @@ const Index = () => {
       />
 
       {/* Main content */}
-      <main className="ml-56 pt-14 h-screen overflow-hidden">
+      <main className="ml-56 h-screen overflow-hidden">
         <div className="h-full px-6 py-5 flex flex-col">
-          <DemandInput onSubmit={handleSubmit} />
-          <div className="flex-1 pt-4 min-h-0">
+          {/* Page Header com Breadcrumb */}
+          <div className="mb-5">
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+              <span>Demandas</span>
+              <span>/</span>
+              <span className="text-gray-600">
+                {isMaster ? "Painel Administrativo" : "Minhas Demandas"}
+              </span>
+            </div>
+            {/* Título e Subtítulo */}
+            <h1 className="text-2xl font-semibold text-gray-900">
+              {isMaster
+                ? "Painel Administrativo"
+                : profile?.name || "Minhas Demandas"}
+            </h1>
+            <p className="text-sm text-gray-500 mt-1 capitalize">
+              {formatCurrentDate()}
+            </p>
+          </div>
+
+          {/* DemandInput apenas para usuários não-admin */}
+          {!isMaster && <DemandInput onSubmit={handleSubmit} />}
+          <div className={`flex-1 min-h-0 ${!isMaster ? "pt-4" : ""}`}>
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
