@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { useLastComments } from "@/hooks/useComments";
 
 interface KanbanBoardProps {
-  pendingDemands: DemandWithProfile[];
+  openDemands: DemandWithProfile[];
+  inProgressDemands: DemandWithProfile[];
   completedDemands: DemandWithProfile[];
   onDelete: (id: string) => void;
   onClaim?: (id: string) => void;
@@ -28,13 +29,19 @@ const KanbanColumn = ({
   title: string;
   count: number;
   children: React.ReactNode;
-  variant?: "default" | "completed";
+  variant?: "default" | "in-progress" | "completed";
 }) => (
   <div className="flex flex-col h-full min-w-0">
     <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50">
       <h2 className="font-semibold text-foreground text-sm">{title}</h2>
       <Badge
-        variant={variant === "completed" ? "default" : "secondary"}
+        variant={
+          variant === "completed"
+            ? "default"
+            : variant === "in-progress"
+              ? "secondary"
+              : "outline"
+        }
         className="text-xs"
       >
         {count}
@@ -47,7 +54,8 @@ const KanbanColumn = ({
 );
 
 const KanbanBoard = ({
-  pendingDemands,
+  openDemands,
+  inProgressDemands,
   completedDemands,
   onDelete,
   onClaim,
@@ -58,11 +66,16 @@ const KanbanBoard = ({
   unclaimingId,
   isMaster,
 }: KanbanBoardProps) => {
-  const [selectedDemand, setSelectedDemand] = useState<DemandWithProfile | null>(null);
+  const [selectedDemand, setSelectedDemand] =
+    useState<DemandWithProfile | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // Buscar último comentário de todas as demandas
-  const allDemandIds = [...pendingDemands, ...completedDemands].map((d) => d.id);
+  const allDemandIds = [
+    ...openDemands,
+    ...inProgressDemands,
+    ...completedDemands,
+  ].map((d) => d.id);
   const { data: lastComments = {} } = useLastComments(allDemandIds);
 
   const handleCardClick = (demand: DemandWithProfile) => {
@@ -72,20 +85,52 @@ const KanbanBoard = ({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
         {/* Coluna: Demandas Recebidas / Em Fila */}
         <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[calc(100vh-180px)]">
-          <KanbanColumn title="Demandas Recebidas" count={pendingDemands.length}>
-            {pendingDemands.length === 0 ? (
+          <KanbanColumn title="Demandas Recebidas" count={openDemands.length}>
+            {openDemands.length === 0 ? (
               <div className="px-4 py-8 text-center text-muted-foreground text-sm">
                 Nenhuma demanda na fila
               </div>
             ) : (
-              pendingDemands.map((demand, index) => (
+              openDemands.map((demand, index) => (
                 <DemandCard
                   key={demand.id}
                   demand={demand}
                   queuePosition={index + 1}
+                  lastComment={lastComments[demand.id]}
+                  onDelete={onDelete}
+                  onClaim={onClaim}
+                  onComplete={onComplete}
+                  onUnclaim={onUnclaim}
+                  onClick={() => handleCardClick(demand)}
+                  isClaiming={claimingId === demand.id}
+                  isCompleting={completingId === demand.id}
+                  isUnclaiming={unclaimingId === demand.id}
+                  isMaster={isMaster}
+                />
+              ))
+            )}
+          </KanbanColumn>
+        </div>
+
+        {/* Coluna: Em Andamento (Assumidas) */}
+        <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+          <KanbanColumn
+            title="Em Andamento"
+            count={inProgressDemands.length}
+            variant="in-progress"
+          >
+            {inProgressDemands.length === 0 ? (
+              <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+                Nenhuma demanda em andamento
+              </div>
+            ) : (
+              inProgressDemands.map((demand) => (
+                <DemandCard
+                  key={demand.id}
+                  demand={demand}
                   lastComment={lastComments[demand.id]}
                   onDelete={onDelete}
                   onClaim={onClaim}

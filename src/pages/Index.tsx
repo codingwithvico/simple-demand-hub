@@ -32,11 +32,16 @@ const Index = () => {
     requestNotificationPermission();
   }, []);
 
-  // Separa demandas pendentes (open + in_progress) e concluídas
-  const { pendingDemands, completedDemands } = useMemo(() => {
-    const pending = demands.filter((d) => d.status !== "completed");
+  // Separa demandas por status: abertas (fila), em andamento e concluídas
+  const { openDemands, inProgressDemands, completedDemands } = useMemo(() => {
+    const open = demands.filter((d) => d.status === "open");
+    const inProgress = demands.filter((d) => d.status === "in_progress");
     const completed = demands.filter((d) => d.status === "completed");
-    return { pendingDemands: pending, completedDemands: completed };
+    return {
+      openDemands: open,
+      inProgressDemands: inProgress,
+      completedDemands: completed,
+    };
   }, [demands]);
 
   const handleSubmit = (data: {
@@ -71,7 +76,8 @@ const Index = () => {
               </div>
             ) : isMaster ? (
               <KanbanBoard
-                pendingDemands={pendingDemands}
+                openDemands={openDemands}
+                inProgressDemands={inProgressDemands}
                 completedDemands={completedDemands}
                 onDelete={deleteDemand}
                 onClaim={claimDemand}
