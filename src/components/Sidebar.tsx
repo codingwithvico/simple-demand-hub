@@ -5,11 +5,11 @@ import {
   BarChart3,
   LogOut,
   FileText,
-  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import Logo from "@/components/Logo";
 
 export type AdminTab =
   | "demands"
@@ -71,7 +71,7 @@ const Sidebar = ({ activeTab, onLogout, isMaster }: SidebarProps) => {
     <aside className="fixed left-0 top-0 h-screen w-56 bg-gray-100 flex flex-col">
       {/* Logo */}
       <div className="px-5 py-6">
-        <h1 className="text-gray-900 font-semibold text-lg">Tramita+</h1>
+        <Logo size="md" />
       </div>
 
       {/* Navigation */}
@@ -99,8 +99,8 @@ const Sidebar = ({ activeTab, onLogout, isMaster }: SidebarProps) => {
           onClick={onLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 hover:text-gray-700 transition-all"
         >
-          <HelpCircle className="h-4 w-4" strokeWidth={1.5} />
-          Ajuda & Suporte
+          <LogOut className="h-4 w-4" strokeWidth={1.5} />
+          Sair
         </button>
       </div>
     </aside>

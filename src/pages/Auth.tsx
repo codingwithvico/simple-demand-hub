@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import Logo from "@/components/Logo";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -39,9 +40,9 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="w-full max-w-sm px-4">
-        <h1 className="text-2xl font-semibold text-foreground text-center mb-8">
-          Tramita+
-        </h1>
+        <div className="text-center mb-8">
+          <Logo size="lg" />
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input

@@ -22,8 +22,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, ChevronUp, ChevronDown, X, List, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+  X,
+  List,
+  Loader2,
+} from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import Logo from "@/components/Logo";
 
 type FieldType = "short_text" | "long_text" | "select";
 
@@ -308,7 +317,7 @@ const DemandTypes = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 h-14 bg-card border-b border-border flex items-center justify-between px-4 z-10">
-        <h1 className="text-foreground font-semibold text-lg">Tramita+</h1>
+        <Logo />
       </header>
 
       {/* Sidebar */}
@@ -355,7 +364,11 @@ const DemandTypes = () => {
               {/* Botão para ver tipos existentes */}
               <Dialog open={showTypesList} onOpenChange={setShowTypesList}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full" onClick={handleShowTypes}>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleShowTypes}
+                  >
                     <List className="h-4 w-4 mr-2" />
                     Ver tipos existentes
                   </Button>
