@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import KanbanBoard from "@/components/KanbanBoard";
+import UserDemandsList from "@/components/UserDemandsList";
 import DemandInput from "@/components/DemandInput";
 import Sidebar from "@/components/Sidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -68,7 +69,7 @@ const Index = () => {
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : (
+            ) : isMaster ? (
               <KanbanBoard
                 pendingDemands={pendingDemands}
                 completedDemands={completedDemands}
@@ -81,6 +82,8 @@ const Index = () => {
                 unclaimingId={unclaimingId}
                 isMaster={isMaster}
               />
+            ) : (
+              <UserDemandsList demands={demands} />
             )}
           </div>
         </div>

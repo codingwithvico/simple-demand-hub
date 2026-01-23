@@ -115,10 +115,19 @@ export const useDemands = (
   const fetchDemands = useCallback(async () => {
     // Calcula o início e fim do dia atual
     const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1,
+    );
 
-    const { data, error } = await supabase
+    // Monta a query base
+    let query = supabase
       .from("demands")
       .select(
         `
@@ -131,8 +140,16 @@ export const useDemands = (
       `,
       )
       .gte("created_at", startOfDay.toISOString())
-      .lt("created_at", endOfDay.toISOString())
-      .order("created_at", { ascending: true });
+      .lt("created_at", endOfDay.toISOString());
+
+    // Se não for master, filtra apenas as demandas criadas pelo próprio usuário
+    if (!isMaster && user?.id) {
+      query = query.eq("created_by", user.id);
+    }
+
+    const { data, error } = await query.order("created_at", {
+      ascending: true,
+    });
 
     if (error) {
       console.error("Error fetching demands:", error);
@@ -168,7 +185,7 @@ export const useDemands = (
 
     setDemands(mapped);
     setLoading(false);
-  }, []);
+  }, [isMaster, user?.id]);
 
   // Real-time subscription - atualiza apenas o card alterado
   useEffect(() => {
