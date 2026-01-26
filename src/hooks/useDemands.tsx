@@ -134,18 +134,13 @@ export const useDemands = (
         *,
         claimed_by_profile:profiles!demands_claimed_by_fkey(name),
         completed_by_profile:profiles!demands_completed_by_fkey(name),
-        created_by_profile:profiles!demands_created_by_fkey(name),
+        created_by_profile:profiles!demands_created_by_fkey(name, team:teams!profiles_team_id_fkey(name)),
         team:teams!demands_team_id_fkey(name),
         demand_type:demand_types!demands_demand_type_id_fkey(id, name)
       `,
       )
       .gte("created_at", startOfDay.toISOString())
       .lt("created_at", endOfDay.toISOString());
-
-    // Se não for master, filtra apenas as demandas criadas pelo próprio usuário
-    if (!isMaster && user?.id) {
-      query = query.eq("created_by", user.id);
-    }
 
     const { data, error } = await query.order("created_at", {
       ascending: true,
@@ -180,6 +175,7 @@ export const useDemands = (
       claimed_by_name: d.claimed_by_profile?.name || null,
       completed_by_name: d.completed_by_profile?.name || null,
       created_by_name: d.created_by_profile?.name || null,
+      created_by_team_name: d.created_by_profile?.team?.name || null,
       team_name: d.team?.name || null,
     }));
 
