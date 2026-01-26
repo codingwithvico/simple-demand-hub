@@ -23,6 +23,7 @@ export interface DemandWithProfile extends Demand {
   claimed_by_name?: string | null;
   completed_by_name?: string | null;
   created_by_name?: string | null;
+  created_by_team_name?: string | null;
   team_name?: string | null;
   demand_type_name?: string | null;
 }

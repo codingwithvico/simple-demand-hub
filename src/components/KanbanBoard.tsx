@@ -10,6 +10,8 @@ interface KanbanBoardProps {
   openDemands: DemandWithProfile[];
   inProgressDemands: DemandWithProfile[];
   completedDemands: DemandWithProfile[];
+  // Para cálculo da posição global na fila (usado quando mostramos apenas demandas do usuário)
+  globalOpenDemands?: DemandWithProfile[];
   onDelete: (id: string) => void;
   onClaim?: (id: string) => void;
   onComplete?: (id: string) => void;
@@ -68,6 +70,7 @@ const KanbanBoard = ({
   openDemands,
   inProgressDemands,
   completedDemands,
+  globalOpenDemands,
   onDelete,
   onClaim,
   onComplete,
@@ -94,6 +97,13 @@ const KanbanBoard = ({
     setDialogOpen(true);
   };
 
+  // Calcula a posição global na fila para uma demanda
+  const getGlobalQueuePosition = (demandId: string): number => {
+    const referenceQueue = globalOpenDemands || openDemands;
+    const index = referenceQueue.findIndex((d) => d.id === demandId);
+    return index >= 0 ? index + 1 : 0;
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
@@ -106,11 +116,11 @@ const KanbanBoard = ({
           emptyMessage="Nenhuma demanda na fila"
           isEmpty={openDemands.length === 0}
         >
-          {openDemands.map((demand, index) => (
+          {openDemands.map((demand) => (
             <DemandCard
               key={demand.id}
               demand={demand}
-              queuePosition={index + 1}
+              queuePosition={getGlobalQueuePosition(demand.id)}
               lastComment={lastComments[demand.id]}
               onDelete={onDelete}
               onClaim={onClaim}
