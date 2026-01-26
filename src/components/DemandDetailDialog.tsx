@@ -120,7 +120,7 @@ const DemandDetailDialog = ({
               </h3>
             </div>
 
-            <ScrollArea className="flex-1 max-h-[200px]">
+            <ScrollArea className="flex-1 min-h-[150px] max-h-[300px]">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="animate-spin text-muted-foreground" />

@@ -128,6 +128,12 @@ const DemandCard = ({
       {/* Header com Avatar e Nome */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
+          {/* Posição na fila */}
+          {queuePosition !== undefined && (
+            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+              <span className="text-xs font-bold">#{queuePosition}</span>
+            </div>
+          )}
           <Avatar className={`h-9 w-9 ${getAvatarColor(displayName)}`}>
             <AvatarFallback
               className={`text-xs font-medium ${getAvatarColor(displayName)}`}
