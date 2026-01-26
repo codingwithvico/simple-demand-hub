@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import KanbanBoard from "@/components/KanbanBoard";
+import UserDemandsList from "@/components/UserDemandsList";
 import DemandInput from "@/components/DemandInput";
 import Sidebar from "@/components/Sidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,27 +47,16 @@ const Index = () => {
   }, []);
 
   // Separa demandas por status: abertas (fila), em andamento e concluídas
-  // Para usuários comuns, filtra apenas suas demandas, mas mantém posição correta na fila global
-  const { openDemands, inProgressDemands, completedDemands, userOpenDemands, userInProgressDemands, userCompletedDemands } = useMemo(() => {
+  const { openDemands, inProgressDemands, completedDemands } = useMemo(() => {
     const open = demands.filter((d) => d.status === "open");
     const inProgress = demands.filter((d) => d.status === "in_progress");
     const completed = demands.filter((d) => d.status === "completed");
-    
-    // Para usuários comuns, filtra apenas suas demandas
-    const userId = profile?.id;
-    const userOpen = open.filter((d) => d.created_by === userId);
-    const userInProgress = inProgress.filter((d) => d.created_by === userId);
-    const userCompleted = completed.filter((d) => d.created_by === userId);
-    
     return {
       openDemands: open,
       inProgressDemands: inProgress,
       completedDemands: completed,
-      userOpenDemands: userOpen,
-      userInProgressDemands: userInProgress,
-      userCompletedDemands: userCompleted,
     };
-  }, [demands, profile?.id]);
+  }, [demands]);
 
   const handleSubmit = (data: {
     demandTypeId: string;
@@ -115,21 +105,22 @@ const Index = () => {
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : (
+            ) : isMaster ? (
               <KanbanBoard
-                openDemands={isMaster ? openDemands : userOpenDemands}
-                inProgressDemands={isMaster ? inProgressDemands : userInProgressDemands}
-                completedDemands={isMaster ? completedDemands : userCompletedDemands}
-                globalOpenDemands={isMaster ? undefined : openDemands}
+                openDemands={openDemands}
+                inProgressDemands={inProgressDemands}
+                completedDemands={completedDemands}
                 onDelete={deleteDemand}
-                onClaim={isMaster ? claimDemand : undefined}
-                onComplete={isMaster ? completeDemand : undefined}
-                onUnclaim={isMaster ? unclaimDemand : undefined}
+                onClaim={claimDemand}
+                onComplete={completeDemand}
+                onUnclaim={unclaimDemand}
                 claimingId={claimingId}
                 completingId={completingId}
                 unclaimingId={unclaimingId}
                 isMaster={isMaster}
               />
+            ) : (
+              <UserDemandsList demands={demands} />
             )}
           </div>
         </div>

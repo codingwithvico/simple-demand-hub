@@ -8,7 +8,6 @@ import {
   Loader2,
   MessageSquare,
   Clock,
-  Users,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -129,12 +128,6 @@ const DemandCard = ({
       {/* Header com Avatar e Nome */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          {/* Posição na fila */}
-          {queuePosition !== undefined && (
-            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
-              <span className="text-xs font-bold">#{queuePosition}</span>
-            </div>
-          )}
           <Avatar className={`h-9 w-9 ${getAvatarColor(displayName)}`}>
             <AvatarFallback
               className={`text-xs font-medium ${getAvatarColor(displayName)}`}
@@ -143,18 +136,9 @@ const DemandCard = ({
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {displayName}
-              </p>
-              {/* Tag de equipe - apenas para admins */}
-              {isMaster && demand.created_by_team_name && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-700 text-[10px] font-medium shrink-0">
-                  <Users size={10} />
-                  {demand.created_by_team_name}
-                </span>
-              )}
-            </div>
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {displayName}
+            </p>
             {demand.demand_type_name && (
               <p className="text-xs text-gray-500 truncate">
                 {demand.demand_type_name}
