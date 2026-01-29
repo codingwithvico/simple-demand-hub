@@ -117,13 +117,14 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
             <SelectValue placeholder="Selecione o tipo de demanda" />
           </SelectTrigger>
           <SelectContent
-            className="rounded-xl"
+            className="rounded-xl notranslate"
             position="popper"
             sideOffset={4}
+            translate="no"
           >
             {demandTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
-                {type.name}
+                <span translate="no">{type.name}</span>
               </SelectItem>
             ))}
           </SelectContent>
@@ -176,13 +177,14 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
                     />
                   </SelectTrigger>
                   <SelectContent
-                    className="rounded-xl"
+                    className="rounded-xl notranslate"
                     position="popper"
                     sideOffset={4}
+                    translate="no"
                   >
                     {field.options.map((option) => (
                       <SelectItem key={option} value={option}>
-                        {option}
+                        <span translate="no">{option}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
