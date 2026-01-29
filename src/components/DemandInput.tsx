@@ -105,14 +105,22 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
         >
           Tipo de Demanda
         </Label>
-        <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
+        <Select
+          key={demandTypes.length}
+          value={selectedTypeId}
+          onValueChange={setSelectedTypeId}
+        >
           <SelectTrigger
             id="demand-type"
             className="rounded-xl border-gray-200 focus:ring-gray-300"
           >
             <SelectValue placeholder="Selecione o tipo de demanda" />
           </SelectTrigger>
-          <SelectContent className="rounded-xl">
+          <SelectContent
+            className="rounded-xl"
+            position="popper"
+            sideOffset={4}
+          >
             {demandTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 {type.name}
@@ -158,6 +166,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
 
               {field.field_type === "select" && field.options && (
                 <Select
+                  key={`${field.id}-${field.options.length}`}
                   value={fieldValues[field.id] || ""}
                   onValueChange={(value) => handleFieldChange(field.id, value)}
                 >
@@ -166,7 +175,11 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
                       placeholder={`Selecione ${field.label.toLowerCase()}`}
                     />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl">
+                  <SelectContent
+                    className="rounded-xl"
+                    position="popper"
+                    sideOffset={4}
+                  >
                     {field.options.map((option) => (
                       <SelectItem key={option} value={option}>
                         {option}

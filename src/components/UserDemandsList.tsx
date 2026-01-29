@@ -112,7 +112,7 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
 
   return (
     <>
-      <div className="space-y-6 h-[calc(100vh-280px)]">
+      <div className="space-y-6 h-[calc(100vh-220px)] overflow-hidden">
         <ScrollArea className="h-full pr-4">
           {/* Demandas pendentes */}
           {pendingDemands.length > 0 && (
@@ -134,15 +134,10 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                   return (
                     <div
                       key={demand.id}
-                      className="bg-white rounded-xl p-4 shadow-sm transition-all"
+                      className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                      onClick={() => handleCardClick(demand)}
                     >
                       <div className="flex items-center gap-3">
-                        {/* Posição na fila */}
-                        {demand.status === "open" && (
-                          <div className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
-                            <span className="text-xs font-bold">#{pendingDemands.indexOf(demand) + 1}</span>
-                          </div>
-                        )}
                         <Avatar
                           className={`h-9 w-9 ${getAvatarColor(displayName)}`}
                         >
@@ -179,13 +174,6 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                         </div>
                       </div>
 
-                      {/* Descrição da demanda */}
-                      {demand.description && (
-                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-                          {demand.description}
-                        </p>
-                      )}
-
                       {/* Footer com tempo e responsável */}
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                         <div className="flex items-center gap-3">
@@ -195,15 +183,12 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                               {formatShortTime(demand.created_at)}
                             </span>
                           </div>
-                          <button
-                            onClick={() => handleCardClick(demand)}
-                            className="flex items-center gap-1.5 text-gray-400 hover:text-blue-500 transition-colors"
-                          >
-                            <MessageSquare size={13} />
-                            <span className="text-xs font-medium">
-                              {lastComment ? "Ver comentários" : "Comentar"}
-                            </span>
-                          </button>
+                          {lastComment && (
+                            <div className="flex items-center gap-1.5 text-gray-400">
+                              <MessageSquare size={13} />
+                              <span className="text-xs font-medium">1</span>
+                            </div>
+                          )}
                         </div>
                         {demand.claimed_by_name && demand.status !== "open" && (
                           <Avatar
@@ -242,7 +227,8 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                   return (
                     <div
                       key={demand.id}
-                      className="bg-white rounded-xl p-4 shadow-sm transition-all opacity-70"
+                      className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer opacity-70"
+                      onClick={() => handleCardClick(demand)}
                     >
                       <div className="flex items-center gap-3">
                         <Avatar
@@ -272,13 +258,6 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                         </div>
                       </div>
 
-                      {/* Descrição da demanda */}
-                      {demand.description && (
-                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-                          {demand.description}
-                        </p>
-                      )}
-
                       {/* Footer */}
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                         <div className="flex items-center gap-3">
@@ -288,15 +267,12 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                               {formatShortTime(demand.created_at)}
                             </span>
                           </div>
-                          <button
-                            onClick={() => handleCardClick(demand)}
-                            className="flex items-center gap-1.5 text-gray-400 hover:text-blue-500 transition-colors"
-                          >
-                            <MessageSquare size={13} />
-                            <span className="text-xs font-medium">
-                              {lastComment ? "Ver comentários" : "Comentar"}
-                            </span>
-                          </button>
+                          {lastComment && (
+                            <div className="flex items-center gap-1.5 text-gray-400">
+                              <MessageSquare size={13} />
+                              <span className="text-xs font-medium">1</span>
+                            </div>
+                          )}
                         </div>
                         {demand.completed_by_name && (
                           <Avatar
