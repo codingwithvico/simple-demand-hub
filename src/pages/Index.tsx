@@ -82,7 +82,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-background transition-colors duration-200">
       {/* Sidebar */}
       <Sidebar
         activeTab="demands"
@@ -96,20 +96,20 @@ const Index = () => {
           {/* Page Header com Breadcrumb */}
           <div className="mb-5">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
               <span>Demandas</span>
               <span>/</span>
-              <span className="text-gray-600">
+              <span className="text-foreground">
                 {isMaster ? "Painel Administrativo" : "Minhas Demandas"}
               </span>
             </div>
             {/* Título e Subtítulo */}
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-2xl font-semibold text-foreground">
               {isMaster
                 ? "Painel Administrativo"
                 : profile?.name || "Minhas Demandas"}
             </h1>
-            <p className="text-sm text-gray-500 mt-1 capitalize">
+            <p className="text-sm text-muted-foreground mt-1 capitalize">
               {formatCurrentDate()}
             </p>
           </div>

@@ -175,7 +175,11 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    @apply transition-colors duration-200;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-200;
   }
 }
