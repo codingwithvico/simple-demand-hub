@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Clock,
   AlertTriangle,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,13 @@ interface DemandCardProps {
   isUnclaiming?: boolean;
   isMaster?: boolean;
 }
+
+// Formata o nome do usuário para menção (@usuario)
+const formatUserMention = (name: string | null) => {
+  if (!name) return null;
+  // Remove espaços e converte para lowercase para o formato @usuario
+  return name.toLowerCase().replace(/\s+/g, "");
+};
 
 // Gera iniciais do nome para o avatar
 const getInitials = (name: string | null) => {
@@ -135,6 +143,31 @@ const DemandCard = ({
     return typeColors.default;
   };
 
+  // Formata data para exibição
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(date);
+  };
+
+  // Mapeia status para texto legível
+  const getStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      open: "Aberta",
+      in_progress: "Em andamento",
+      completed: "Concluída",
+    };
+    return statusMap[status] || status;
+  };
+
+  // Nome do usuário responsável formatado como menção (quem assumiu a demanda)
+  const responsibleUserMention = formatUserMention(demand.claimed_by_name);
+
+  // Nome do criador da demanda formatado como menção
+  const creatorUserMention = formatUserMention(demand.created_by_name);
+
   return (
     <div
       className={`
@@ -149,32 +182,38 @@ const DemandCard = ({
       data-id={demand.id}
       onClick={handleCardClick}
     >
-      {/* Tag / Categoria */}
-      {demand.demand_type_name && (
-        <span
-          className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-md mb-2.5 ${getTagColor()}`}
-        >
-          {demand.demand_type_name}
-        </span>
-      )}
+      {/* Header Tags Row - Tipo da Demanda e Equipe */}
+      <div className="flex items-center gap-2 flex-wrap mb-2.5">
+        {demand.demand_type_name && (
+          <span
+            className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-md ${getTagColor()}`}
+          >
+            {demand.demand_type_name}
+          </span>
+        )}
+        {demand.team_name &&
+          demand.team_name !== "null" &&
+          demand.team_name !== "NULL" && (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-md
+              bg-muted/60 dark:bg-muted/30
+              text-muted-foreground"
+            >
+              <Users size={10} />
+              {demand.team_name}
+            </span>
+          )}
+      </div>
 
-      {/* Header com Título e Menu */}
+      {/* Título da Demanda com Menu */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3
-              className="text-sm font-medium truncate leading-snug"
-              style={{ color: "hsl(var(--kanban-text-primary))" }}
-            >
-              {displayName}
-            </h3>
-            {demand.isDelayed && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-500/20 text-red-500 dark:bg-red-500/30 dark:text-red-400 shrink-0">
-                <AlertTriangle size={10} />
-                {daysDelayed}d
-              </span>
-            )}
-          </div>
+          <h3
+            className="text-[15px] font-semibold leading-snug line-clamp-2"
+            style={{ color: "hsl(var(--kanban-text-primary))" }}
+          >
+            {displayName}
+          </h3>
         </div>
 
         {/* Menu - apenas para masters */}
@@ -239,6 +278,98 @@ const DemandCard = ({
         )}
       </div>
 
+      {/* Indicador de atraso */}
+      {demand.isDelayed && (
+        <div className="mt-1.5">
+          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-500/20 text-red-500 dark:bg-red-500/30 dark:text-red-400">
+            <AlertTriangle size={10} />
+            {daysDelayed}d em atraso
+          </span>
+        </div>
+      )}
+
+      {/* Usuário que abriu a demanda (formato @menção) - coluna Recebidas */}
+      {creatorUserMention && demand.status === "open" && (
+        <div className="mt-2.5">
+          <span
+            className="inline-flex items-center text-[13px] px-2 py-0.5 rounded-full
+              border border-border
+              text-primary hover:text-primary/80
+              transition-colors"
+          >
+            @{creatorUserMention}
+          </span>
+        </div>
+      )}
+
+      {/* Usuário Responsável (formato @menção) - coluna Em andamento */}
+      {responsibleUserMention && demand.status === "in_progress" && (
+        <div className="mt-2.5">
+          <span
+            className="inline-flex items-center text-[13px] px-2 py-0.5 rounded-full
+              border border-border
+              text-primary hover:text-primary/80
+              transition-colors"
+          >
+            @{responsibleUserMention}
+          </span>
+        </div>
+      )}
+
+      {/* Campos adicionais da demanda */}
+      <div className="mt-3 flex flex-col gap-1.5 text-[12px]">
+        <div className="flex items-center gap-1.5">
+          <span
+            className="font-semibold"
+            style={{ color: "hsl(var(--kanban-text-secondary))" }}
+          >
+            Criado em:
+          </span>
+          <span className="font-medium text-blue-600 dark:text-blue-400">
+            {formatDate(demand.created_at)}
+          </span>
+        </div>
+        {demand.title && (
+          <div className="flex flex-col gap-0.5">
+            <span
+              className="font-semibold"
+              style={{ color: "hsl(var(--kanban-text-secondary))" }}
+            >
+              Título:
+            </span>
+            <span className="font-medium text-blue-600 dark:text-blue-400 line-clamp-1">
+              {demand.title}
+            </span>
+          </div>
+        )}
+        {demand.description && (
+          <div className="flex flex-col gap-1">
+            {demand.description.split("\n").map((line, index) => {
+              const colonIndex = line.indexOf(":");
+              if (colonIndex > 0) {
+                const key = line.substring(0, colonIndex).trim();
+                const value = line.substring(colonIndex + 1).trim();
+                return (
+                  <div key={index} className="flex gap-1 flex-wrap">
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {key}:
+                    </span>
+                    <span className="text-blue-600 dark:text-blue-400">
+                      {value}
+                    </span>
+                  </div>
+                );
+              }
+              return (
+                <span key={index} className="text-blue-600 dark:text-blue-400">
+                  {line}
+                </span>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Footer */}
       <div
         className="flex items-center justify-between pt-3 mt-3"
@@ -262,6 +393,7 @@ const DemandCard = ({
         {demand.claimed_by_name && demand.status === "in_progress" && (
           <Avatar
             className={`h-6 w-6 ${getAvatarColor(demand.claimed_by_name)}`}
+            title={demand.claimed_by_name}
           >
             <AvatarFallback
               className={`text-[10px] font-medium ${getAvatarColor(demand.claimed_by_name)}`}

@@ -140,7 +140,9 @@ export const useDemands = (
         demand_type:demand_types!demands_demand_type_id_fkey(id, name)
       `,
       )
-      .or(`status.in.(open,in_progress),and(status.eq.completed,completed_at.gte.${startOfDay.toISOString()})`);
+      .or(
+        `status.in.(open,in_progress),and(status.eq.completed,completed_at.gte.${startOfDay.toISOString()})`,
+      );
 
     // Se não for master, filtra apenas as demandas criadas pelo próprio usuário
     if (!isMaster && user?.id) {
@@ -389,6 +391,42 @@ export const useDemands = (
 
     const { demandTypeId, fieldValues } = data;
 
+    // Buscar o team_id do perfil do usuário usando o email como fallback
+    let teamId: string | null = null;
+
+    // Primeira tentativa: buscar por ID
+    const { data: userProfile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, team_id, name")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError) {
+      console.error("Error fetching user profile by ID:", profileError);
+      console.log("User ID being searched:", user.id);
+
+      // Fallback: buscar por email se o ID não funcionar
+      if (user.email) {
+        const { data: profileByEmail, error: emailError } = await supabase
+          .from("profiles")
+          .select("id, team_id, name")
+          .eq("email", user.email)
+          .single();
+
+        if (emailError) {
+          console.error("Error fetching profile by email:", emailError);
+        } else {
+          console.log("Profile found by email:", profileByEmail);
+          teamId = profileByEmail?.team_id || null;
+        }
+      }
+    } else {
+      console.log("Profile found by ID:", userProfile);
+      teamId = userProfile?.team_id || null;
+    }
+
+    console.log("Final team_id to be used:", teamId);
+
     // Buscar os campos do tipo para gerar descrição
     const { data: fields } = await supabase
       .from("demand_type_fields")
@@ -407,13 +445,14 @@ export const useDemands = (
 
     const description = descriptionParts.join("\n");
 
-    // Criar a demanda
+    // Criar a demanda com team_id do perfil do usuário
     const { data: demand, error: demandError } = await supabase
       .from("demands")
       .insert({
         description,
         demand_type_id: demandTypeId,
         created_by: user.id,
+        team_id: teamId,
       })
       .select()
       .single();
