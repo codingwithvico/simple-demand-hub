@@ -10,9 +10,6 @@ import {
   Clock,
   AlertTriangle,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -51,18 +48,18 @@ const getInitials = (name: string | null) => {
   return name.slice(0, 2).toUpperCase();
 };
 
-// Gera cor de fundo baseada no nome
+// Gera cor de fundo baseada no nome (dark mode compatible)
 const getAvatarColor = (name: string | null) => {
-  if (!name) return "bg-muted";
+  if (!name) return "bg-muted text-muted-foreground";
   const colors = [
-    "bg-blue-100 text-blue-700",
-    "bg-green-100 text-green-700",
-    "bg-purple-100 text-purple-700",
-    "bg-orange-100 text-orange-700",
-    "bg-pink-100 text-pink-700",
-    "bg-cyan-100 text-cyan-700",
-    "bg-amber-100 text-amber-700",
-    "bg-rose-100 text-rose-700",
+    "bg-blue-500/20 text-blue-400 dark:bg-blue-500/30 dark:text-blue-300",
+    "bg-green-500/20 text-green-600 dark:bg-green-500/30 dark:text-green-300",
+    "bg-purple-500/20 text-purple-600 dark:bg-purple-500/30 dark:text-purple-300",
+    "bg-orange-500/20 text-orange-600 dark:bg-orange-500/30 dark:text-orange-300",
+    "bg-pink-500/20 text-pink-600 dark:bg-pink-500/30 dark:text-pink-300",
+    "bg-cyan-500/20 text-cyan-600 dark:bg-cyan-500/30 dark:text-cyan-300",
+    "bg-amber-500/20 text-amber-600 dark:bg-amber-500/30 dark:text-amber-300",
+    "bg-rose-500/20 text-rose-600 dark:bg-rose-500/30 dark:text-rose-300",
   ];
   const index = name.charCodeAt(0) % colors.length;
   return colors[index];
@@ -129,41 +126,53 @@ const DemandCard = ({
   // Conta comentários (simulado pelo lastComment)
   const commentCount = lastComment ? 1 : 0;
 
+  // Tag colors based on demand type
+  const getTagColor = () => {
+    const typeColors: Record<string, string> = {
+      default:
+        "bg-purple-500/20 text-purple-600 dark:bg-purple-500/30 dark:text-purple-300",
+    };
+    return typeColors.default;
+  };
+
   return (
     <div
-      className={`mx-3 mb-2 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-gray-200 ${isCompleted ? "opacity-60" : ""}`}
+      className={`
+        rounded-xl p-3.5 cursor-pointer
+        border border-[hsl(var(--kanban-card-border))]
+        bg-[hsl(var(--kanban-card-bg))]
+        transition-all duration-150 ease-out
+        hover:-translate-y-0.5 hover:border-primary/40
+        hover:shadow-lg hover:shadow-black/[0.08] dark:hover:shadow-black/30
+        ${isCompleted ? "opacity-60" : ""}
+      `}
       data-id={demand.id}
       onClick={handleCardClick}
     >
-      {/* Header com Avatar e Nome */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <Avatar className={`h-9 w-9 ${getAvatarColor(displayName)}`}>
-            <AvatarFallback
-              className={`text-xs font-medium ${getAvatarColor(displayName)}`}
+      {/* Tag / Categoria */}
+      {demand.demand_type_name && (
+        <span
+          className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-md mb-2.5 ${getTagColor()}`}
+        >
+          {demand.demand_type_name}
+        </span>
+      )}
+
+      {/* Header com Título e Menu */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h3
+              className="text-sm font-medium truncate leading-snug"
+              style={{ color: "hsl(var(--kanban-text-primary))" }}
             >
-              {getInitials(displayName)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {displayName}
-              </p>
-              {demand.isDelayed && (
-                <Badge 
-                  variant="destructive" 
-                  className="text-[10px] px-1.5 py-0 h-4 gap-1 shrink-0"
-                >
-                  <AlertTriangle size={10} />
-                  {daysDelayed}d
-                </Badge>
-              )}
-            </div>
-            {demand.demand_type_name && (
-              <p className="text-xs text-gray-500 truncate">
-                {demand.demand_type_name}
-              </p>
+              {displayName}
+            </h3>
+            {demand.isDelayed && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-500/20 text-red-500 dark:bg-red-500/30 dark:text-red-400 shrink-0">
+                <AlertTriangle size={10} />
+                {daysDelayed}d
+              </span>
             )}
           </div>
         </div>
@@ -175,7 +184,8 @@ const DemandCard = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="h-7 w-7 shrink-0 rounded-lg opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"
+                style={{ color: "hsl(var(--kanban-text-secondary))" }}
                 disabled={isLoading}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -229,32 +239,36 @@ const DemandCard = ({
         )}
       </div>
 
-      {/* Footer com tempo e comentários */}
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
-        <div className="flex items-center gap-1.5 text-gray-400">
-          <Clock size={13} />
-          <span className="text-xs font-medium">
-            {formatShortTime(demand.created_at)}
-          </span>
+      {/* Footer */}
+      <div
+        className="flex items-center justify-between pt-3 mt-3"
+        style={{ borderTop: "1px solid hsl(var(--kanban-card-border))" }}
+      >
+        <div
+          className="flex items-center gap-3 text-xs"
+          style={{ color: "hsl(var(--kanban-text-secondary))" }}
+        >
+          <div className="flex items-center gap-1">
+            <Clock size={13} />
+            <span>{formatShortTime(demand.created_at)}</span>
+          </div>
+          {commentCount > 0 && (
+            <div className="flex items-center gap-1">
+              <MessageSquare size={13} />
+              <span>{commentCount}</span>
+            </div>
+          )}
         </div>
-        {commentCount > 0 && (
-          <div className="flex items-center gap-1.5 text-gray-400">
-            <MessageSquare size={13} />
-            <span className="text-xs font-medium">{commentCount}</span>
-          </div>
-        )}
         {demand.claimed_by_name && demand.status === "in_progress" && (
-          <div className="flex items-center gap-1.5 ml-auto">
-            <Avatar
-              className={`h-5 w-5 ${getAvatarColor(demand.claimed_by_name)}`}
+          <Avatar
+            className={`h-6 w-6 ${getAvatarColor(demand.claimed_by_name)}`}
+          >
+            <AvatarFallback
+              className={`text-[10px] font-medium ${getAvatarColor(demand.claimed_by_name)}`}
             >
-              <AvatarFallback
-                className={`text-[10px] font-medium ${getAvatarColor(demand.claimed_by_name)}`}
-              >
-                {getInitials(demand.claimed_by_name)}
-              </AvatarFallback>
-            </Avatar>
-          </div>
+              {getInitials(demand.claimed_by_name)}
+            </AvatarFallback>
+          </Avatar>
         )}
       </div>
     </div>

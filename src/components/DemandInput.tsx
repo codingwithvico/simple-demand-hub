@@ -78,16 +78,16 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm px-5 py-6 flex justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+      <div className="bg-card rounded-2xl shadow-sm px-5 py-6 flex justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (demandTypes.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm px-5 py-6 text-center">
-        <p className="text-gray-500 text-sm">
+      <div className="bg-card rounded-2xl shadow-sm px-5 py-6 text-center">
+        <p className="text-muted-foreground text-sm">
           Nenhum tipo de demanda configurado. Aguarde o administrador criar os
           tipos.
         </p>
@@ -96,12 +96,12 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm px-5 py-5 space-y-4">
+    <div className="bg-card rounded-2xl shadow-sm px-5 py-5 space-y-4">
       {/* Seletor de tipo de demanda */}
       <div className="space-y-2">
         <Label
           htmlFor="demand-type"
-          className="text-gray-700 text-sm font-medium"
+          className="text-foreground text-sm font-medium"
         >
           Tipo de Demanda
         </Label>
@@ -112,7 +112,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
         >
           <SelectTrigger
             id="demand-type"
-            className="rounded-xl border-gray-200 focus:ring-gray-300"
+            className="rounded-xl border-border focus:ring-ring"
           >
             <SelectValue placeholder="Selecione o tipo de demanda" />
           </SelectTrigger>
@@ -133,12 +133,12 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
 
       {/* Campos dinâmicos */}
       {selectedType && selectedType.fields.length > 0 && (
-        <div className="space-y-4 pt-3 border-t border-gray-100">
+        <div className="space-y-4 pt-3 border-t border-border">
           {selectedType.fields.map((field) => (
             <div key={field.id} className="space-y-2">
               <Label
                 htmlFor={field.id}
-                className="text-gray-700 text-sm font-medium"
+                className="text-foreground text-sm font-medium"
               >
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -150,7 +150,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
                   value={fieldValues[field.id] || ""}
                   onChange={(e) => handleFieldChange(field.id, e.target.value)}
                   placeholder={`Digite ${field.label.toLowerCase()}`}
-                  className="rounded-xl border-gray-200 focus:ring-gray-300"
+                  className="rounded-xl border-border focus:ring-ring"
                 />
               )}
 
@@ -161,7 +161,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
                   onChange={(e) => handleFieldChange(field.id, e.target.value)}
                   placeholder={`Digite ${field.label.toLowerCase()}`}
                   rows={3}
-                  className="rounded-xl border-gray-200 focus:ring-gray-300"
+                  className="rounded-xl border-border focus:ring-ring"
                 />
               )}
 
@@ -171,7 +171,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
                   value={fieldValues[field.id] || ""}
                   onValueChange={(value) => handleFieldChange(field.id, value)}
                 >
-                  <SelectTrigger className="rounded-xl border-gray-200 focus:ring-gray-300">
+                  <SelectTrigger className="rounded-xl border-border focus:ring-ring">
                     <SelectValue
                       placeholder={`Selecione ${field.label.toLowerCase()}`}
                     />
@@ -201,7 +201,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
           onClick={handleSubmit}
           disabled={!validateForm() || isSubmitting}
           size="sm"
-          className="rounded-xl bg-gray-900 hover:bg-gray-800 text-white px-5"
+          className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-5"
         >
           {isSubmitting ? (
             <>
