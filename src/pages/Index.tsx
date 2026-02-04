@@ -10,6 +10,7 @@ import { useUserTeamSettings } from "@/hooks/useUserTeamSettings";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { isToday } from "date-fns";
 
 // Formata a data atual
 const formatCurrentDate = () => {
@@ -46,14 +47,29 @@ const Index = () => {
     requestNotificationPermission();
   }, []);
 
-  // Separa demandas por status: abertas (fila), em andamento e concluídas
+  // Calcula isDelayed e separa demandas por status
   const { openDemands, inProgressDemands, completedDemands } = useMemo(() => {
-    const open = demands.filter((d) => d.status === "open");
-    const inProgress = demands.filter((d) => d.status === "in_progress");
-    const completed = demands.filter((d) => d.status === "completed");
+    // Adiciona isDelayed em cada demanda
+    const demandsWithDelay = demands.map((d) => ({
+      ...d,
+      isDelayed: d.status !== "completed" && !isToday(d.created_at),
+    }));
+
+    // Separa por status
+    const open = demandsWithDelay.filter((d) => d.status === "open");
+    const inProgress = demandsWithDelay.filter((d) => d.status === "in_progress");
+    const completed = demandsWithDelay.filter((d) => d.status === "completed");
+
+    // Ordena: atrasadas primeiro (por created_at asc), depois do dia (por created_at asc)
+    const sortByDelay = (a: typeof open[0], b: typeof open[0]) => {
+      if (a.isDelayed && !b.isDelayed) return -1;
+      if (!a.isDelayed && b.isDelayed) return 1;
+      return a.created_at.getTime() - b.created_at.getTime();
+    };
+
     return {
-      openDemands: open,
-      inProgressDemands: inProgress,
+      openDemands: open.sort(sortByDelay),
+      inProgressDemands: inProgress.sort(sortByDelay),
       completedDemands: completed,
     };
   }, [demands]);
