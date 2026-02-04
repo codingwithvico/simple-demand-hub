@@ -2,9 +2,7 @@ import { useState } from "react";
 import { DemandWithProfile } from "@/types/demand";
 import DemandCard from "./DemandCard";
 import DemandDetailDialog from "./DemandDetailDialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLastComments } from "@/hooks/useComments";
-import { Clock, PlayCircle, CheckCircle2 } from "lucide-react";
 
 interface KanbanBoardProps {
   openDemands: DemandWithProfile[];
@@ -24,43 +22,61 @@ interface KanbanColumnProps {
   title: string;
   count: number;
   children: React.ReactNode;
-  icon: React.ElementType;
+  status: "open" | "in-progress" | "completed";
   emptyMessage: string;
-  bgColor: string;
-  isEmpty: boolean;
 }
+
+const statusDotColors = {
+  open: "bg-blue-500",
+  "in-progress": "bg-amber-500",
+  completed: "bg-green-500",
+};
 
 const KanbanColumn = ({
   title,
   count,
   children,
-  icon: Icon,
+  status,
   emptyMessage,
-  bgColor,
-  isEmpty,
 }: KanbanColumnProps) => (
   <div
-    className={`${bgColor} rounded-2xl overflow-hidden flex flex-col ${isEmpty ? "" : "max-h-[calc(100vh-180px)]"}`}
+    className="flex flex-1 min-w-[280px] flex-col rounded-2xl max-h-[calc(100vh-220px)] overflow-hidden"
+    style={{ background: "hsl(var(--kanban-column-bg))" }}
   >
     {/* Header */}
-    <div className="flex items-center gap-2 px-4 py-4 shrink-0">
-      <Icon size={16} className="text-gray-400" strokeWidth={1.5} />
-      <h2 className="font-medium text-gray-700 text-sm">{title}</h2>
-      <span className="text-xs font-medium text-gray-400 bg-white/60 px-2 py-0.5 rounded-full">
+    <div
+      className="flex items-center gap-2.5 p-4 font-semibold text-[13px] uppercase tracking-wide"
+      style={{
+        color: "hsl(var(--kanban-text-secondary))",
+        borderBottom: "1px solid hsl(var(--kanban-card-border))",
+      }}
+    >
+      <span className={`w-2 h-2 rounded-full ${statusDotColors[status]}`} />
+      <span>{title}</span>
+      <span
+        className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 text-xs font-medium rounded-md"
+        style={{
+          background: "hsl(var(--kanban-card-border))",
+          color: "hsl(var(--kanban-text-secondary))",
+        }}
+      >
         {count}
       </span>
     </div>
 
-    {/* Content */}
-    {isEmpty ? (
-      <div className="px-4 pb-4 text-center text-gray-400 text-sm">
-        {emptyMessage}
-      </div>
-    ) : (
-      <ScrollArea className="flex-1 min-h-0">
-        <div className="pb-4">{children}</div>
-      </ScrollArea>
-    )}
+    {/* Card List */}
+    <div className="flex flex-col gap-2.5 p-3 overflow-y-auto flex-1 kanban-scrollbar">
+      {count === 0 ? (
+        <div
+          className="text-center py-8 text-sm"
+          style={{ color: "hsl(var(--kanban-text-secondary))" }}
+        >
+          {emptyMessage}
+        </div>
+      ) : (
+        children
+      )}
+    </div>
   </div>
 );
 
@@ -96,15 +112,16 @@ const KanbanBoard = ({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+      <div
+        className="flex gap-5 p-5 min-h-[calc(100vh-180px)] overflow-x-auto rounded-2xl"
+        style={{ background: "hsl(var(--kanban-board-bg))" }}
+      >
         {/* Coluna: Demandas Recebidas / Em Fila */}
         <KanbanColumn
-          title="Demandas Recebidas"
+          title="Recebidas"
           count={openDemands.length}
-          icon={Clock}
-          bgColor="bg-white/60"
+          status="open"
           emptyMessage="Nenhuma demanda na fila"
-          isEmpty={openDemands.length === 0}
         >
           {openDemands.map((demand, index) => (
             <DemandCard
@@ -129,10 +146,8 @@ const KanbanBoard = ({
         <KanbanColumn
           title="Em Andamento"
           count={inProgressDemands.length}
-          icon={PlayCircle}
-          bgColor="bg-amber-50/60"
+          status="in-progress"
           emptyMessage="Nenhuma demanda em andamento"
-          isEmpty={inProgressDemands.length === 0}
         >
           {inProgressDemands.map((demand) => (
             <DemandCard
@@ -154,12 +169,10 @@ const KanbanBoard = ({
 
         {/* Coluna: Demandas Finalizadas (Hoje) */}
         <KanbanColumn
-          title="Finalizadas Hoje"
+          title="Finalizadas"
           count={completedDemands.length}
-          icon={CheckCircle2}
-          bgColor="bg-green-50/60"
+          status="completed"
           emptyMessage="Nenhuma demanda concluída hoje"
-          isEmpty={completedDemands.length === 0}
         >
           {completedDemands.map((demand) => (
             <DemandCard

@@ -10,6 +10,7 @@ import { useUserTeamSettings } from "@/hooks/useUserTeamSettings";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { isToday } from "date-fns";
 
 // Formata a data atual
 const formatCurrentDate = () => {
@@ -46,14 +47,29 @@ const Index = () => {
     requestNotificationPermission();
   }, []);
 
-  // Separa demandas por status: abertas (fila), em andamento e concluídas
+  // Calcula isDelayed e separa demandas por status
   const { openDemands, inProgressDemands, completedDemands } = useMemo(() => {
-    const open = demands.filter((d) => d.status === "open");
-    const inProgress = demands.filter((d) => d.status === "in_progress");
-    const completed = demands.filter((d) => d.status === "completed");
+    // Adiciona isDelayed em cada demanda
+    const demandsWithDelay = demands.map((d) => ({
+      ...d,
+      isDelayed: d.status !== "completed" && !isToday(d.created_at),
+    }));
+
+    // Separa por status
+    const open = demandsWithDelay.filter((d) => d.status === "open");
+    const inProgress = demandsWithDelay.filter((d) => d.status === "in_progress");
+    const completed = demandsWithDelay.filter((d) => d.status === "completed");
+
+    // Ordena: atrasadas primeiro (por created_at asc), depois do dia (por created_at asc)
+    const sortByDelay = (a: typeof open[0], b: typeof open[0]) => {
+      if (a.isDelayed && !b.isDelayed) return -1;
+      if (!a.isDelayed && b.isDelayed) return 1;
+      return a.created_at.getTime() - b.created_at.getTime();
+    };
+
     return {
-      openDemands: open,
-      inProgressDemands: inProgress,
+      openDemands: open.sort(sortByDelay),
+      inProgressDemands: inProgress.sort(sortByDelay),
       completedDemands: completed,
     };
   }, [demands]);
@@ -66,7 +82,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-background transition-colors duration-200">
       {/* Sidebar */}
       <Sidebar
         activeTab="demands"
@@ -80,20 +96,20 @@ const Index = () => {
           {/* Page Header com Breadcrumb */}
           <div className="mb-5">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
               <span>Demandas</span>
               <span>/</span>
-              <span className="text-gray-600">
+              <span className="text-foreground">
                 {isMaster ? "Painel Administrativo" : "Minhas Demandas"}
               </span>
             </div>
             {/* Título e Subtítulo */}
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-2xl font-semibold text-foreground">
               {isMaster
                 ? "Painel Administrativo"
                 : profile?.name || "Minhas Demandas"}
             </h1>
-            <p className="text-sm text-gray-500 mt-1 capitalize">
+            <p className="text-sm text-muted-foreground mt-1 capitalize">
               {formatCurrentDate()}
             </p>
           </div>

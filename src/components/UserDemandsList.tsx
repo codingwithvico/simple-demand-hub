@@ -20,20 +20,20 @@ const statusConfig = {
   open: {
     label: "Aguardando",
     icon: Circle,
-    bgColor: "bg-gray-100",
-    textColor: "text-gray-600",
+    bgColor: "bg-muted",
+    textColor: "text-muted-foreground",
   },
   in_progress: {
     label: "Em andamento",
     icon: Loader2,
-    bgColor: "bg-amber-100",
-    textColor: "text-amber-700",
+    bgColor: "bg-amber-500/20 dark:bg-amber-500/30",
+    textColor: "text-amber-700 dark:text-amber-400",
   },
   completed: {
     label: "Concluída",
     icon: CheckCircle2,
-    bgColor: "bg-green-100",
-    textColor: "text-green-700",
+    bgColor: "bg-green-500/20 dark:bg-green-500/30",
+    textColor: "text-green-700 dark:text-green-400",
   },
 };
 
@@ -49,14 +49,14 @@ const getInitials = (name: string | null) => {
 
 // Gera cor de fundo baseada no nome
 const getAvatarColor = (name: string | null) => {
-  if (!name) return "bg-gray-200 text-gray-600";
+  if (!name) return "bg-muted text-muted-foreground";
   const colors = [
-    "bg-blue-100 text-blue-700",
-    "bg-green-100 text-green-700",
-    "bg-purple-100 text-purple-700",
-    "bg-orange-100 text-orange-700",
-    "bg-pink-100 text-pink-700",
-    "bg-cyan-100 text-cyan-700",
+    "bg-blue-500/20 text-blue-700 dark:bg-blue-500/30 dark:text-blue-300",
+    "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300",
+    "bg-purple-500/20 text-purple-700 dark:bg-purple-500/30 dark:text-purple-300",
+    "bg-orange-500/20 text-orange-700 dark:bg-orange-500/30 dark:text-orange-300",
+    "bg-pink-500/20 text-pink-700 dark:bg-pink-500/30 dark:text-pink-300",
+    "bg-cyan-500/20 text-cyan-700 dark:bg-cyan-500/30 dark:text-cyan-300",
   ];
   const index = name.charCodeAt(0) % colors.length;
   return colors[index];
@@ -96,13 +96,13 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
   if (demands.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="text-gray-300 mb-4">
+        <div className="text-muted-foreground/50 mb-4">
           <MessageSquare size={48} strokeWidth={1} />
         </div>
-        <h3 className="text-lg font-medium text-gray-700 mb-2">
+        <h3 className="text-lg font-medium text-foreground mb-2">
           Nenhuma demanda criada hoje
         </h3>
-        <p className="text-sm text-gray-500 max-w-md">
+        <p className="text-sm text-muted-foreground max-w-md">
           Use o formulário acima para criar uma nova demanda. Ela aparecerá aqui
           e você poderá acompanhar o andamento.
         </p>
@@ -117,10 +117,10 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
           {/* Demandas pendentes */}
           {pendingDemands.length > 0 && (
             <div className="mb-6">
-              <h2 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <Clock size={16} className="text-gray-400" />
+              <h2 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+                <Clock size={16} className="text-muted-foreground" />
                 Minhas Demandas em Aberto
-                <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                   {pendingDemands.length}
                 </span>
               </h2>
@@ -134,7 +134,7 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                   return (
                     <div
                       key={demand.id}
-                      className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                      className="bg-card rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer border border-border"
                       onClick={() => handleCardClick(demand)}
                     >
                       <div className="flex items-center gap-3">
@@ -149,7 +149,7 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                            <p className="text-sm font-medium text-foreground truncate">
                               {demand.demand_type_name || "Demanda"}
                             </p>
                             <span
@@ -167,7 +167,7 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                             </span>
                           </div>
                           {demand.title && (
-                            <p className="text-xs text-gray-500 truncate mt-0.5">
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">
                               {demand.title}
                             </p>
                           )}
@@ -175,16 +175,16 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                       </div>
 
                       {/* Footer com tempo e responsável */}
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1.5 text-gray-400">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
                             <Clock size={13} />
                             <span className="text-xs font-medium">
                               {formatShortTime(demand.created_at)}
                             </span>
                           </div>
                           {lastComment && (
-                            <div className="flex items-center gap-1.5 text-gray-400">
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
                               <MessageSquare size={13} />
                               <span className="text-xs font-medium">1</span>
                             </div>
@@ -212,10 +212,10 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
           {/* Demandas concluídas */}
           {completedDemands.length > 0 && (
             <div>
-              <h2 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
                 <CheckCircle2 size={16} className="text-green-500" />
                 Concluídas Hoje
-                <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                   {completedDemands.length}
                 </span>
               </h2>
@@ -227,7 +227,7 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                   return (
                     <div
                       key={demand.id}
-                      className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer opacity-70"
+                      className="bg-card rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer opacity-70 border border-border"
                       onClick={() => handleCardClick(demand)}
                     >
                       <div className="flex items-center gap-3">
@@ -242,16 +242,16 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                            <p className="text-sm font-medium text-foreground truncate">
                               {demand.demand_type_name || "Demanda"}
                             </p>
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1">
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-400 flex items-center gap-1">
                               <CheckCircle2 size={10} />
                               Concluída
                             </span>
                           </div>
                           {demand.title && (
-                            <p className="text-xs text-gray-500 truncate mt-0.5">
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">
                               {demand.title}
                             </p>
                           )}
@@ -259,16 +259,16 @@ const UserDemandsList = ({ demands }: UserDemandsListProps) => {
                       </div>
 
                       {/* Footer */}
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1.5 text-gray-400">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
                             <Clock size={13} />
                             <span className="text-xs font-medium">
                               {formatShortTime(demand.created_at)}
                             </span>
                           </div>
                           {lastComment && (
-                            <div className="flex items-center gap-1.5 text-gray-400">
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
                               <MessageSquare size={13} />
                               <span className="text-xs font-medium">1</span>
                             </div>

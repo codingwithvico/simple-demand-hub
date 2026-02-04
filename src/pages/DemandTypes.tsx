@@ -290,7 +290,7 @@ const DemandTypes = () => {
   // Loading
   if (authLoading || roleLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
@@ -307,7 +307,7 @@ const DemandTypes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-background">
       {/* Sidebar */}
       <Sidebar
         activeTab="demand-types"
@@ -321,16 +321,16 @@ const DemandTypes = () => {
           {/* Page Header com Breadcrumb */}
           <div className="mb-5">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
               <span>Administração</span>
               <span>/</span>
-              <span className="text-gray-600">Tipos de Demanda</span>
+              <span className="text-foreground">Tipos de Demanda</span>
             </div>
             {/* Título e Subtítulo */}
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-2xl font-semibold text-foreground">
               Tipos de Demanda
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Defina os layouts das demandas
             </p>
           </div>

@@ -15,7 +15,7 @@ const Logo = ({ className, size = "md" }: LogoProps) => {
   return (
     <span
       className={cn(
-        "font-prompt font-semibold text-gray-900 tracking-tight",
+        "font-prompt font-semibold text-foreground tracking-tight",
         sizeClasses[size],
         className,
       )}

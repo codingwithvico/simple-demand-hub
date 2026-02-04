@@ -110,6 +110,20 @@ All colors MUST be HSL.
     --tracking-normal: 0em;
 
     --spacing: 0.25rem;
+
+    /* Kanban Board - Light Mode */
+    --kanban-board-bg: 220 14% 96%;
+    --kanban-column-bg: 0 0% 100%;
+    --kanban-card-bg: 0 0% 100%;
+    --kanban-card-border: 220 13% 91%;
+    --kanban-text-primary: 220 13% 13%;
+    --kanban-text-secondary: 220 9% 46%;
+    --kanban-column-header-bg: 220 14% 96%;
+
+    /* Scrollbar colors - Light mode */
+    --scroll-track: hsl(220 14% 92%);
+    --scroll-thumb: hsl(220 9% 76%);
+    --scroll-thumb-hover: hsl(220 9% 60%);
   }
 
   .dark {
@@ -167,6 +181,20 @@ All colors MUST be HSL.
     --shadow-xl:
       0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+
+    /* Kanban Board - Dark Mode */
+    --kanban-board-bg: 225 15% 6%;
+    --kanban-column-bg: 224 14% 10%;
+    --kanban-card-bg: 223 14% 13%;
+    --kanban-card-border: 222 13% 18%;
+    --kanban-text-primary: 220 14% 96%;
+    --kanban-text-secondary: 220 9% 65%;
+    --kanban-column-header-bg: 224 14% 8%;
+
+    /* Scrollbar colors - Dark mode */
+    --scroll-track: hsl(224 14% 12%);
+    --scroll-thumb: hsl(222 13% 30%);
+    --scroll-thumb-hover: hsl(222 13% 45%);
   }
 }
 
@@ -175,7 +203,50 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    @apply transition-colors duration-200;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-200;
+  }
+}
+
+/* Kanban Board Styles - Only scrollbar (can't be done in Tailwind) */
+@layer components {
+  .kanban-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .kanban-scrollbar:hover {
+    scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+  }
+
+  .kanban-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .kanban-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 6px;
+  }
+
+  .kanban-scrollbar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+  }
+
+  .kanban-scrollbar:hover::-webkit-scrollbar-track {
+    background: var(--scroll-track);
+  }
+
+  .kanban-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb);
+  }
+
+  .kanban-scrollbar:hover::-webkit-scrollbar-thumb:hover {
+    background: var(--scroll-thumb-hover);
   }
 }

@@ -8,9 +8,9 @@ import {
   Loader2,
   MessageSquare,
   Clock,
+  AlertTriangle,
+  Users,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -39,6 +39,13 @@ interface DemandCardProps {
   isMaster?: boolean;
 }
 
+// Formata o nome do usuário para menção (@usuario)
+const formatUserMention = (name: string | null) => {
+  if (!name) return null;
+  // Remove espaços e converte para lowercase para o formato @usuario
+  return name.toLowerCase().replace(/\s+/g, "");
+};
+
 // Gera iniciais do nome para o avatar
 const getInitials = (name: string | null) => {
   if (!name) return "?";
@@ -49,18 +56,18 @@ const getInitials = (name: string | null) => {
   return name.slice(0, 2).toUpperCase();
 };
 
-// Gera cor de fundo baseada no nome
+// Gera cor de fundo baseada no nome (dark mode compatible)
 const getAvatarColor = (name: string | null) => {
-  if (!name) return "bg-muted";
+  if (!name) return "bg-muted text-muted-foreground";
   const colors = [
-    "bg-blue-100 text-blue-700",
-    "bg-green-100 text-green-700",
-    "bg-purple-100 text-purple-700",
-    "bg-orange-100 text-orange-700",
-    "bg-pink-100 text-pink-700",
-    "bg-cyan-100 text-cyan-700",
-    "bg-amber-100 text-amber-700",
-    "bg-rose-100 text-rose-700",
+    "bg-blue-500/20 text-blue-400 dark:bg-blue-500/30 dark:text-blue-300",
+    "bg-green-500/20 text-green-600 dark:bg-green-500/30 dark:text-green-300",
+    "bg-purple-500/20 text-purple-600 dark:bg-purple-500/30 dark:text-purple-300",
+    "bg-orange-500/20 text-orange-600 dark:bg-orange-500/30 dark:text-orange-300",
+    "bg-pink-500/20 text-pink-600 dark:bg-pink-500/30 dark:text-pink-300",
+    "bg-cyan-500/20 text-cyan-600 dark:bg-cyan-500/30 dark:text-cyan-300",
+    "bg-amber-500/20 text-amber-600 dark:bg-amber-500/30 dark:text-amber-300",
+    "bg-rose-500/20 text-rose-600 dark:bg-rose-500/30 dark:text-rose-300",
   ];
   const index = name.charCodeAt(0) % colors.length;
   return colors[index];
@@ -77,6 +84,13 @@ const formatShortTime = (date: Date) => {
   if (diffMins < 60) return `${diffMins}m`;
   if (diffHours < 24) return `${diffHours}h`;
   return `${diffDays}d`;
+};
+
+// Calcula dias de atraso
+const getDaysDelayed = (date: Date) => {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 };
 
 const DemandCard = ({
@@ -97,6 +111,7 @@ const DemandCard = ({
   const isCompleted = demand.status === "completed";
   const isLoading = isClaiming || isCompleting || isUnclaiming;
   const displayName = demand.created_by_name || "Anônimo";
+  const daysDelayed = demand.isDelayed ? getDaysDelayed(demand.created_at) : 0;
 
   // Pode desassumir se é master, está em andamento, e foi quem assumiu
   const canUnclaim =
@@ -119,32 +134,86 @@ const DemandCard = ({
   // Conta comentários (simulado pelo lastComment)
   const commentCount = lastComment ? 1 : 0;
 
+  // Tag colors based on demand type
+  const getTagColor = () => {
+    const typeColors: Record<string, string> = {
+      default:
+        "bg-purple-500/20 text-purple-600 dark:bg-purple-500/30 dark:text-purple-300",
+    };
+    return typeColors.default;
+  };
+
+  // Formata data para exibição
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(date);
+  };
+
+  // Mapeia status para texto legível
+  const getStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      open: "Aberta",
+      in_progress: "Em andamento",
+      completed: "Concluída",
+    };
+    return statusMap[status] || status;
+  };
+
+  // Nome do usuário responsável formatado como menção (quem assumiu a demanda)
+  const responsibleUserMention = formatUserMention(demand.claimed_by_name);
+
+  // Nome do criador da demanda formatado como menção
+  const creatorUserMention = formatUserMention(demand.created_by_name);
+
   return (
     <div
-      className={`mx-3 mb-2 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-gray-200 ${isCompleted ? "opacity-60" : ""}`}
+      className={`
+        rounded-xl p-3.5 cursor-pointer
+        border border-[hsl(var(--kanban-card-border))]
+        bg-[hsl(var(--kanban-card-bg))]
+        transition-all duration-150 ease-out
+        hover:-translate-y-0.5 hover:border-primary/40
+        hover:shadow-lg hover:shadow-black/[0.08] dark:hover:shadow-black/30
+        ${isCompleted ? "opacity-60" : ""}
+      `}
       data-id={demand.id}
       onClick={handleCardClick}
     >
-      {/* Header com Avatar e Nome */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <Avatar className={`h-9 w-9 ${getAvatarColor(displayName)}`}>
-            <AvatarFallback
-              className={`text-xs font-medium ${getAvatarColor(displayName)}`}
+      {/* Header Tags Row - Tipo da Demanda e Equipe */}
+      <div className="flex items-center gap-2 flex-wrap mb-2.5">
+        {demand.demand_type_name && (
+          <span
+            className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-md ${getTagColor()}`}
+          >
+            {demand.demand_type_name}
+          </span>
+        )}
+        {demand.team_name &&
+          demand.team_name !== "null" &&
+          demand.team_name !== "NULL" && (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-md
+              bg-muted/60 dark:bg-muted/30
+              text-muted-foreground"
             >
-              {getInitials(displayName)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-gray-900 truncate">
-              {displayName}
-            </p>
-            {demand.demand_type_name && (
-              <p className="text-xs text-gray-500 truncate">
-                {demand.demand_type_name}
-              </p>
-            )}
-          </div>
+              <Users size={10} />
+              {demand.team_name}
+            </span>
+          )}
+      </div>
+
+      {/* Título da Demanda com Menu */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <h3
+            className="text-[15px] font-semibold leading-snug line-clamp-2"
+            style={{ color: "hsl(var(--kanban-text-primary))" }}
+          >
+            {displayName}
+          </h3>
         </div>
 
         {/* Menu - apenas para masters */}
@@ -154,7 +223,8 @@ const DemandCard = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="h-7 w-7 shrink-0 rounded-lg opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"
+                style={{ color: "hsl(var(--kanban-text-secondary))" }}
                 disabled={isLoading}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -208,32 +278,129 @@ const DemandCard = ({
         )}
       </div>
 
-      {/* Footer com tempo e comentários */}
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
-        <div className="flex items-center gap-1.5 text-gray-400">
-          <Clock size={13} />
-          <span className="text-xs font-medium">
-            {formatShortTime(demand.created_at)}
+      {/* Indicador de atraso */}
+      {demand.isDelayed && (
+        <div className="mt-1.5">
+          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-500/20 text-red-500 dark:bg-red-500/30 dark:text-red-400">
+            <AlertTriangle size={10} />
+            {daysDelayed}d em atraso
           </span>
         </div>
-        {commentCount > 0 && (
-          <div className="flex items-center gap-1.5 text-gray-400">
-            <MessageSquare size={13} />
-            <span className="text-xs font-medium">{commentCount}</span>
+      )}
+
+      {/* Usuário que abriu a demanda (formato @menção) - coluna Recebidas */}
+      {creatorUserMention && demand.status === "open" && (
+        <div className="mt-2.5">
+          <span
+            className="inline-flex items-center text-[13px] px-2 py-0.5 rounded-full
+              border border-border
+              text-primary hover:text-primary/80
+              transition-colors"
+          >
+            @{creatorUserMention}
+          </span>
+        </div>
+      )}
+
+      {/* Usuário Responsável (formato @menção) - coluna Em andamento */}
+      {responsibleUserMention && demand.status === "in_progress" && (
+        <div className="mt-2.5">
+          <span
+            className="inline-flex items-center text-[13px] px-2 py-0.5 rounded-full
+              border border-border
+              text-primary hover:text-primary/80
+              transition-colors"
+          >
+            @{responsibleUserMention}
+          </span>
+        </div>
+      )}
+
+      {/* Campos adicionais da demanda */}
+      <div className="mt-3 flex flex-col gap-1.5 text-[12px]">
+        <div className="flex items-center gap-1.5">
+          <span
+            className="font-semibold"
+            style={{ color: "hsl(var(--kanban-text-secondary))" }}
+          >
+            Criado em:
+          </span>
+          <span className="font-medium text-blue-600 dark:text-blue-400">
+            {formatDate(demand.created_at)}
+          </span>
+        </div>
+        {demand.title && (
+          <div className="flex flex-col gap-0.5">
+            <span
+              className="font-semibold"
+              style={{ color: "hsl(var(--kanban-text-secondary))" }}
+            >
+              Título:
+            </span>
+            <span className="font-medium text-blue-600 dark:text-blue-400 line-clamp-1">
+              {demand.title}
+            </span>
           </div>
         )}
-        {demand.claimed_by_name && demand.status === "in_progress" && (
-          <div className="flex items-center gap-1.5 ml-auto">
-            <Avatar
-              className={`h-5 w-5 ${getAvatarColor(demand.claimed_by_name)}`}
-            >
-              <AvatarFallback
-                className={`text-[10px] font-medium ${getAvatarColor(demand.claimed_by_name)}`}
-              >
-                {getInitials(demand.claimed_by_name)}
-              </AvatarFallback>
-            </Avatar>
+        {demand.description && (
+          <div className="flex flex-col gap-1">
+            {demand.description.split("\n").map((line, index) => {
+              const colonIndex = line.indexOf(":");
+              if (colonIndex > 0) {
+                const key = line.substring(0, colonIndex).trim();
+                const value = line.substring(colonIndex + 1).trim();
+                return (
+                  <div key={index} className="flex gap-1 flex-wrap">
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {key}:
+                    </span>
+                    <span className="text-blue-600 dark:text-blue-400">
+                      {value}
+                    </span>
+                  </div>
+                );
+              }
+              return (
+                <span key={index} className="text-blue-600 dark:text-blue-400">
+                  {line}
+                </span>
+              );
+            })}
           </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div
+        className="flex items-center justify-between pt-3 mt-3"
+        style={{ borderTop: "1px solid hsl(var(--kanban-card-border))" }}
+      >
+        <div
+          className="flex items-center gap-3 text-xs"
+          style={{ color: "hsl(var(--kanban-text-secondary))" }}
+        >
+          <div className="flex items-center gap-1">
+            <Clock size={13} />
+            <span>{formatShortTime(demand.created_at)}</span>
+          </div>
+          {commentCount > 0 && (
+            <div className="flex items-center gap-1">
+              <MessageSquare size={13} />
+              <span>{commentCount}</span>
+            </div>
+          )}
+        </div>
+        {demand.claimed_by_name && demand.status === "in_progress" && (
+          <Avatar
+            className={`h-6 w-6 ${getAvatarColor(demand.claimed_by_name)}`}
+            title={demand.claimed_by_name}
+          >
+            <AvatarFallback
+              className={`text-[10px] font-medium ${getAvatarColor(demand.claimed_by_name)}`}
+            >
+              {getInitials(demand.claimed_by_name)}
+            </AvatarFallback>
+          </Avatar>
         )}
       </div>
     </div>
