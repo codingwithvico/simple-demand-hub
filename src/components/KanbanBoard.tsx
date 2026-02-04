@@ -40,7 +40,7 @@ const KanbanColumn = ({
   isEmpty,
 }: KanbanColumnProps) => (
   <div
-    className={`${bgColor} rounded-2xl overflow-hidden flex flex-col ${isEmpty ? "" : "max-h-[calc(100vh-180px)]"}`}
+    className={`${bgColor} rounded-2xl overflow-hidden flex flex-col h-full max-h-[calc(100vh-200px)]`}
   >
     {/* Header */}
     <div className="flex items-center gap-2 px-4 py-4 shrink-0">
@@ -57,9 +57,9 @@ const KanbanColumn = ({
         {emptyMessage}
       </div>
     ) : (
-      <ScrollArea className="flex-1 min-h-0">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="pb-4">{children}</div>
-      </ScrollArea>
+      </div>
     )}
   </div>
 );
