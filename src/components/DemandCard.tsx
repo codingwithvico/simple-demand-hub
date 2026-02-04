@@ -8,7 +8,9 @@ import {
   Loader2,
   MessageSquare,
   Clock,
+  AlertTriangle,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -79,6 +81,13 @@ const formatShortTime = (date: Date) => {
   return `${diffDays}d`;
 };
 
+// Calcula dias de atraso
+const getDaysDelayed = (date: Date) => {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+};
+
 const DemandCard = ({
   demand,
   queuePosition,
@@ -97,6 +106,7 @@ const DemandCard = ({
   const isCompleted = demand.status === "completed";
   const isLoading = isClaiming || isCompleting || isUnclaiming;
   const displayName = demand.created_by_name || "Anônimo";
+  const daysDelayed = demand.isDelayed ? getDaysDelayed(demand.created_at) : 0;
 
   // Pode desassumir se é master, está em andamento, e foi quem assumiu
   const canUnclaim =
@@ -136,9 +146,20 @@ const DemandCard = ({
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-gray-900 truncate">
-              {displayName}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {displayName}
+              </p>
+              {demand.isDelayed && (
+                <Badge 
+                  variant="destructive" 
+                  className="text-[10px] px-1.5 py-0 h-4 gap-1 shrink-0"
+                >
+                  <AlertTriangle size={10} />
+                  {daysDelayed}d
+                </Badge>
+              )}
+            </div>
             {demand.demand_type_name && (
               <p className="text-xs text-gray-500 truncate">
                 {demand.demand_type_name}

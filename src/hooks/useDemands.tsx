@@ -127,6 +127,7 @@ export const useDemands = (
     );
 
     // Monta a query base
+    // Busca: todas open/in_progress (qualquer data) + completed do dia
     let query = supabase
       .from("demands")
       .select(
@@ -139,8 +140,7 @@ export const useDemands = (
         demand_type:demand_types!demands_demand_type_id_fkey(id, name)
       `,
       )
-      .gte("created_at", startOfDay.toISOString())
-      .lt("created_at", endOfDay.toISOString());
+      .or(`status.in.(open,in_progress),and(status.eq.completed,completed_at.gte.${startOfDay.toISOString()})`);
 
     // Se não for master, filtra apenas as demandas criadas pelo próprio usuário
     if (!isMaster && user?.id) {

@@ -25,4 +25,5 @@ export interface DemandWithProfile extends Demand {
   created_by_name?: string | null;
   team_name?: string | null;
   demand_type_name?: string | null;
+  isDelayed?: boolean;
 }

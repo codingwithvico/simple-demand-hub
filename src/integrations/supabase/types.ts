@@ -244,6 +244,42 @@ export type Database = {
           },
         ]
       }
+      emails: {
+        Row: {
+          from_email: string | null
+          html_body: string | null
+          id: string
+          message_id: string | null
+          raw: Json | null
+          received_at: string | null
+          subject: string | null
+          text_body: string | null
+          to_email: string | null
+        }
+        Insert: {
+          from_email?: string | null
+          html_body?: string | null
+          id?: string
+          message_id?: string | null
+          raw?: Json | null
+          received_at?: string | null
+          subject?: string | null
+          text_body?: string | null
+          to_email?: string | null
+        }
+        Update: {
+          from_email?: string | null
+          html_body?: string | null
+          id?: string
+          message_id?: string | null
+          raw?: Json | null
+          received_at?: string | null
+          subject?: string | null
+          text_body?: string | null
+          to_email?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
