@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import Logo from "@/components/Logo";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export type AdminTab =
   | "demands"
@@ -68,7 +69,7 @@ const Sidebar = ({ activeTab, onLogout, isMaster }: SidebarProps) => {
   const visibleTabs = tabs.filter((tab) => !tab.masterOnly || isMaster);
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-56 bg-gray-100 flex flex-col">
+    <aside className="fixed left-0 top-0 h-screen w-56 bg-sidebar flex flex-col border-r border-sidebar-border transition-colors duration-200">
       {/* Logo */}
       <div className="px-5 py-6">
         <Logo size="md" />
@@ -83,8 +84,8 @@ const Sidebar = ({ activeTab, onLogout, isMaster }: SidebarProps) => {
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
               activeTab === tab.id
-                ? "bg-white text-gray-900 font-medium shadow-sm"
-                : "text-gray-500 hover:text-gray-700",
+                ? "bg-card text-foreground font-medium shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             <tab.icon className="h-4 w-4" strokeWidth={1.5} />
@@ -94,10 +95,14 @@ const Sidebar = ({ activeTab, onLogout, isMaster }: SidebarProps) => {
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-4">
+      <div className="px-4 py-4 space-y-2">
+        <div className="flex items-center justify-between px-3">
+          <span className="text-xs text-muted-foreground">Tema</span>
+          <ThemeToggle />
+        </div>
         <button
           onClick={onLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 hover:text-gray-700 transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-all"
         >
           <LogOut className="h-4 w-4" strokeWidth={1.5} />
           Sair
