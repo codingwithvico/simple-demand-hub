@@ -1,49 +1,73 @@
 
-
-# Plano: Botao Flutuante para Criar Demanda (estilo Gmail Compose)
+# Plano: Kanban para Usuarios Convencionais
 
 ## Resumo
 
-Substituir o formulario inline (`DemandInput`) por um botao flutuante `+` no canto inferior direito da tela. Ao clicar, abre um painel/modal compacto ancorado no canto inferior direito (igual ao Gmail quando clicamos em "Escrever"), com o mesmo formulario de criacao de demanda.
+Substituir o componente `UserDemandsList` (lista simples) pelo mesmo layout Kanban usado no painel administrativo, mas adaptado para usuarios comuns: sem acoes de admin (assumir, concluir, excluir), exibindo apenas as demandas do proprio usuario, com posicao na fila visivel e detalhamento completo nos cards.
 
 ## O que muda para o usuario
 
-- O formulario que hoje ocupa espaco fixo no topo da pagina desaparece
-- Um botao redondo com `+` fica sempre visivel no canto inferior direito
-- Ao clicar, um painel compacto (~400px de largura) aparece no canto inferior direito com o formulario
-- O painel tem um header com titulo "Nova Demanda" e um botao de fechar/minimizar
-- Apos publicar com sucesso, o painel fecha automaticamente
+- A visualizacao em lista simples ("Minhas Demandas") sera substituida por um Kanban com 3 colunas:
+  - **Enviadas**: demandas com status `open`, mostrando a posicao na fila (#1, #2, etc.)
+  - **Em Andamento**: demandas com status `in_progress`, atualizadas em tempo real
+  - **Finalizadas**: demandas com status `completed` do dia atual
+- Os cards terao o mesmo nivel de detalhe do painel administrativo (tipo de demanda, campos, data, comentarios, tag de atraso)
+- Nao havera menu de acoes (assumir, concluir, excluir) nos cards -- o usuario apenas visualiza
+- Clicar no card continua abrindo o dialog de detalhes com comentarios
 
 ## Arquivos a modificar
 
 | Arquivo | Alteracao |
 |---------|-----------|
-| `src/components/DemandInput.tsx` | Refatorar para ser o conteudo interno do painel flutuante. Adicionar estado `isOpen`, botao FAB, e o wrapper do painel. Apos submit bem-sucedido, fechar o painel. |
-| `src/pages/Index.tsx` | Remover a renderizacao inline do `DemandInput` no fluxo do layout. Renderizar o `DemandInput` fora do fluxo (posicao fixa), apenas para usuarios nao-master. Remover o padding condicional `pt-4`. |
+| `src/pages/Index.tsx` | Substituir `UserDemandsList` pelo `KanbanBoard` para usuarios comuns, passando as demandas ja separadas por status. Remover import do `UserDemandsList`. |
+| `src/components/KanbanBoard.tsx` | Ajustar os titulos das colunas conforme o contexto (master vs user). Quando `isMaster` for `false`, a coluna open mostra "Enviadas" em vez de "Recebidas". Garantir que a posicao na fila (`queuePosition`) apareca nos cards da coluna open. |
 
 ## Detalhes tecnicos
 
-### Botao flutuante (FAB)
-- Posicao: `fixed bottom-6 right-6`
-- Estilo: botao redondo, `w-14 h-14`, com icone `Plus` do lucide-react
-- `z-index: 50` para ficar acima do conteudo
-- Sombra para destaque: `shadow-lg`
-- Escondido quando o painel esta aberto
+### Index.tsx
 
-### Painel flutuante (Compose Window)
-- Posicao: `fixed bottom-6 right-6`
-- Largura: `w-[420px]`
-- Altura: auto com `max-h-[80vh]` e `overflow-y-auto`
-- Borda arredondada, sombra forte (`shadow-2xl`)
-- Header com "Nova Demanda" + botao X para fechar
-- Corpo: formulario existente do `DemandInput`
-- Animacao de entrada: scale + fade in (CSS)
-- `z-index: 50`
+O `Index.tsx` ja calcula `openDemands`, `inProgressDemands` e `completedDemands` com o `useMemo`. Atualmente, essas variaveis so sao passadas para o `KanbanBoard` quando `isMaster === true`. A mudanca e simples: passar o mesmo `KanbanBoard` para usuarios comuns tambem, mas sem as funcoes de admin (`onClaim`, `onComplete`, `onUnclaim` serao `undefined`) e com `isMaster={false}`.
 
-### Fluxo
-1. Usuario clica no `+`
-2. Painel abre com animacao suave
-3. Usuario preenche e clica "Publicar"
-4. Apos sucesso, painel fecha e formulario reseta
-5. Usuario pode fechar manualmente clicando no X
+```typescript
+// Antes (usuario comum)
+<UserDemandsList demands={demands} />
 
+// Depois (usuario comum - mesmo KanbanBoard)
+<KanbanBoard
+  openDemands={openDemands}
+  inProgressDemands={inProgressDemands}
+  completedDemands={completedDemands}
+  onDelete={deleteDemand}
+  isMaster={false}
+/>
+```
+
+O `useDemands` ja filtra por `created_by = user.id` quando `isMaster` e `false`, entao a seguranca de dados ja esta garantida.
+
+### KanbanBoard.tsx
+
+Ajustar os titulos das colunas baseado no prop `isMaster`:
+
+- Coluna open: "Recebidas" (master) ou "Enviadas" (user)
+- Coluna in-progress: "Em Andamento" (ambos)
+- Coluna completed: "Finalizadas" (ambos)
+
+Os cards na coluna "Enviadas" devem mostrar `queuePosition` para que o usuario saiba sua posicao na fila.
+
+### Posicao na Fila
+
+A posicao na fila (`queuePosition`) ja e passada pelo `KanbanBoard` para os cards da coluna open (via `index + 1`). Isso ja funciona e mostrara ao usuario em que posicao ele esta.
+
+**Importante**: A posicao mostrada sera relativa apenas as demandas do usuario (pois o filtro `created_by` ja limita). Para mostrar a posicao real na fila global, seria necessaria uma query adicional, mas isso esta fora do escopo atual.
+
+### O que NAO muda
+
+- O componente `DemandCard` ja renderiza corretamente sem acoes de admin quando `isMaster={false}` (o menu dropdown so aparece para masters)
+- Os cards ja mostram todos os detalhes (tipo, descricao, campos, data, comentarios, tag de atraso)
+- O `DemandDetailDialog` continua funcionando ao clicar
+- O botao flutuante (FAB) para criar demandas continua no mesmo lugar
+
+### Limpeza
+
+- O componente `UserDemandsList.tsx` podera ser removido, pois nao sera mais utilizado
+- Remover o import correspondente do `Index.tsx`
