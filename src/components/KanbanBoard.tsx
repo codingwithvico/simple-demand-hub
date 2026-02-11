@@ -118,7 +118,7 @@ const KanbanBoard = ({
       >
         {/* Coluna: Demandas Recebidas / Em Fila */}
         <KanbanColumn
-          title="Recebidas"
+          title={isMaster ? "Recebidas" : "Enviadas"}
           count={openDemands.length}
           status="open"
           emptyMessage="Nenhuma demanda na fila"
