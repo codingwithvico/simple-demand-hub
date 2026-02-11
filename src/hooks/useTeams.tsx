@@ -102,5 +102,12 @@ export const useTeams = (autoFetch: boolean = false) => {
     return true;
   };
 
-  return { teams, loading, createTeam, deleteTeam, updateTeamSound, refetch: fetchTeams };
+  return {
+    teams,
+    loading,
+    createTeam,
+    deleteTeam,
+    updateTeamSound,
+    refetch: fetchTeams,
+  };
 };
