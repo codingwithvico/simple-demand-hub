@@ -114,9 +114,7 @@ const Index = () => {
             </p>
           </div>
 
-          {/* DemandInput apenas para usuários não-admin */}
-          {!isMaster && <DemandInput onSubmit={handleSubmit} />}
-          <div className={`flex-1 min-h-0 ${!isMaster ? "pt-4" : ""}`}>
+          <div className="flex-1 min-h-0">
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -141,6 +139,9 @@ const Index = () => {
           </div>
         </div>
       </main>
+
+      {/* FAB + Compose panel para usuários não-admin */}
+      {!isMaster && <DemandInput onSubmit={handleSubmit} />}
     </div>
   );
 };
