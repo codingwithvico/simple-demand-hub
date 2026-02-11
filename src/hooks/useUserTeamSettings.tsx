@@ -36,9 +36,7 @@ export const useUserTeamSettings = () => {
         .eq("id", profile.team_id)
         .single();
 
-      setNotificationSoundEnabled(
-        (team as any)?.notification_sound_enabled ?? true,
-      );
+      setNotificationSoundEnabled(team?.notification_sound_enabled ?? true);
       setLoading(false);
     };
 

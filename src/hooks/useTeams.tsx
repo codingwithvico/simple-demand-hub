@@ -32,7 +32,7 @@ export const useTeams = (autoFetch: boolean = false) => {
     }
 
     setTeams(
-      (data || []).map((t: any) => ({
+      (data || []).map((t) => ({
         id: t.id,
         name: t.name,
         created_at: new Date(t.created_at!),
