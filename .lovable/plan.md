@@ -1,132 +1,49 @@
 
 
-# Plano: Demandas Atrasadas no Kanban
+# Plano: Botao Flutuante para Criar Demanda (estilo Gmail Compose)
 
-## Contexto Atual
-Atualmente, o Kanban exibe apenas demandas criadas no dia atual, usando filtros de data (`gte` e `lt` no `created_at`). Isso significa que demandas não finalizadas de dias anteriores desaparecem do painel no dia seguinte.
+## Resumo
 
-## Objetivo
-1. Demandas **abertas** ou **em andamento** de dias anteriores devem continuar aparecendo no Kanban
-2. Demandas atrasadas devem exibir uma **tag visual de atraso** indicando que são de dias anteriores
-3. Demandas **finalizadas** devem continuar mostrando apenas as do dia atual (manter comportamento)
+Substituir o formulario inline (`DemandInput`) por um botao flutuante `+` no canto inferior direito da tela. Ao clicar, abre um painel/modal compacto ancorado no canto inferior direito (igual ao Gmail quando clicamos em "Escrever"), com o mesmo formulario de criacao de demanda.
 
-## Solução Proposta
+## O que muda para o usuario
 
-### 1. Modificar a Query no `useDemands.tsx`
+- O formulario que hoje ocupa espaco fixo no topo da pagina desaparece
+- Um botao redondo com `+` fica sempre visivel no canto inferior direito
+- Ao clicar, um painel compacto (~400px de largura) aparece no canto inferior direito com o formulario
+- O painel tem um header com titulo "Nova Demanda" e um botao de fechar/minimizar
+- Apos publicar com sucesso, o painel fecha automaticamente
 
-**Nova lógica de busca:**
-- Buscar todas as demandas com `status = 'open'` OU `status = 'in_progress'` (independente da data)
-- **TAMBÉM** buscar demandas com `status = 'completed'` E `completed_at` no dia atual
+## Arquivos a modificar
 
-```text
-+---------------------------+
-|      Demandas a buscar    |
-+---------------------------+
-| status IN (open, in_progress)  -- todas as datas
-| OR
-| (status = completed AND completed_at >= hoje)
-+---------------------------+
-```
-
-### 2. Adicionar Identificação de Atraso
-
-**No tipo `DemandWithProfile`:**
-- Adicionar propriedade calculada `isDelayed` (boolean)
-- Uma demanda é considerada **atrasada** se:
-  - `status !== 'completed'` E
-  - `created_at` é de um dia anterior ao dia atual
-
-### 3. Atualizar o `DemandCard.tsx`
-
-**Adicionar tag visual de atraso:**
-- Badge vermelho/laranja com texto "Atrasada" ou ícone de alerta
-- Exibir há quantos dias está atrasada (ex: "Atrasada (2d)")
-- Posicionar próximo ao header ou no footer do card
-
-```text
-+--------------------------------+
-|  [Avatar] Nome do Usuário      |
-|  Tipo de Demanda    [ATRASADA] |  <-- Nova tag
-|--------------------------------|
-|  [Clock] 2d  [Comments] 1      |
-+--------------------------------+
-```
-
-### 4. Atualizar o `KanbanBoard.tsx`
-
-**Ordenação das colunas:**
-- Na coluna "Demandas Recebidas": mostrar demandas atrasadas primeiro, depois as do dia
-- Na coluna "Em Andamento": mesmo comportamento
-- Manter a ordem cronológica dentro de cada grupo
-
-**Contagem separada (opcional):**
-- Exibir contagem de atrasadas vs. do dia no header da coluna
-
-### 5. Atualizar o `Index.tsx`
-
-- Adicionar lógica para calcular `isDelayed` em cada demanda antes de passar para o Kanban
-
----
-
-## Detalhes Técnicos
-
-### Alteração na Query SQL (useDemands.tsx)
-
-```typescript
-// Antes: filtrava por created_at do dia
-.gte("created_at", startOfDay.toISOString())
-.lt("created_at", endOfDay.toISOString())
-
-// Depois: usar .or() para combinar condições
-.or(
-  `status.in.(open,in_progress),and(status.eq.completed,completed_at.gte.${startOfDay.toISOString()},completed_at.lt.${endOfDay.toISOString()})`
-)
-```
-
-### Cálculo de isDelayed (Index.tsx ou useDemands.tsx)
-
-```typescript
-const isDelayed = (demand: DemandWithProfile): boolean => {
-  if (demand.status === 'completed') return false;
-  const today = new Date();
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  return demand.created_at < startOfToday;
-};
-```
-
-### Tag Visual no DemandCard
-
-```typescript
-// Badge de atraso com dias
-const daysDelayed = Math.floor(
-  (Date.now() - demand.created_at.getTime()) / (1000 * 60 * 60 * 24)
-);
-
-{isDelayed && (
-  <span className="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full">
-    Atrasada ({daysDelayed}d)
-  </span>
-)}
-```
-
----
-
-## Arquivos a Modificar
-
-| Arquivo | Alteração |
+| Arquivo | Alteracao |
 |---------|-----------|
-| `src/hooks/useDemands.tsx` | Modificar query para buscar demandas pendentes de qualquer data + concluídas do dia |
-| `src/types/demand.ts` | Adicionar propriedade `isDelayed?: boolean` na interface |
-| `src/components/DemandCard.tsx` | Adicionar tag visual de atraso |
-| `src/components/KanbanBoard.tsx` | Ordenar demandas atrasadas primeiro |
-| `src/pages/Index.tsx` | Calcular `isDelayed` para cada demanda |
+| `src/components/DemandInput.tsx` | Refatorar para ser o conteudo interno do painel flutuante. Adicionar estado `isOpen`, botao FAB, e o wrapper do painel. Apos submit bem-sucedido, fechar o painel. |
+| `src/pages/Index.tsx` | Remover a renderizacao inline do `DemandInput` no fluxo do layout. Renderizar o `DemandInput` fora do fluxo (posicao fixa), apenas para usuarios nao-master. Remover o padding condicional `pt-4`. |
 
----
+## Detalhes tecnicos
 
-## Resultado Esperado
+### Botao flutuante (FAB)
+- Posicao: `fixed bottom-6 right-6`
+- Estilo: botao redondo, `w-14 h-14`, com icone `Plus` do lucide-react
+- `z-index: 50` para ficar acima do conteudo
+- Sombra para destaque: `shadow-lg`
+- Escondido quando o painel esta aberto
 
-- Demandas não finalizadas nunca "somem" do Kanban
-- Demandas atrasadas são facilmente identificáveis com badge visual
-- Priorização visual: atrasadas aparecem no topo da fila
-- Demandas concluídas continuam mostrando apenas as do dia (evitar poluição visual)
+### Painel flutuante (Compose Window)
+- Posicao: `fixed bottom-6 right-6`
+- Largura: `w-[420px]`
+- Altura: auto com `max-h-[80vh]` e `overflow-y-auto`
+- Borda arredondada, sombra forte (`shadow-2xl`)
+- Header com "Nova Demanda" + botao X para fechar
+- Corpo: formulario existente do `DemandInput`
+- Animacao de entrada: scale + fade in (CSS)
+- `z-index: 50`
+
+### Fluxo
+1. Usuario clica no `+`
+2. Painel abre com animacao suave
+3. Usuario preenche e clica "Publicar"
+4. Apos sucesso, painel fecha e formulario reseta
+5. Usuario pode fechar manualmente clicando no X
 
