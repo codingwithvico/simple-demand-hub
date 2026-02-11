@@ -4,7 +4,8 @@ import { useAuth } from "./useAuth";
 
 export const useUserTeamSettings = () => {
   const { user } = useAuth();
-  const [notificationSoundEnabled, setNotificationSoundEnabled] = useState(true);
+  const [notificationSoundEnabled, setNotificationSoundEnabled] =
+    useState(true);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,9 +36,7 @@ export const useUserTeamSettings = () => {
         .eq("id", profile.team_id)
         .single();
 
-      setNotificationSoundEnabled(
-        (team as any)?.notification_sound_enabled ?? true
-      );
+      setNotificationSoundEnabled(team?.notification_sound_enabled ?? true);
       setLoading(false);
     };
 
