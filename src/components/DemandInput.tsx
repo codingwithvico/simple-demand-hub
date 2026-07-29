@@ -193,14 +193,40 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
                     </Label>
 
                     {field.field_type === "short_text" && (
-                      <Input
-                        id={field.id}
-                        value={fieldValues[field.id] || ""}
-                        onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                        placeholder={`Digite ${field.label.toLowerCase()}`}
-                        className="rounded-xl border-border focus:ring-ring"
-                      />
+                      <>
+                        <Input
+                          id={field.id}
+                          value={fieldValues[field.id] || ""}
+                          onChange={(e) =>
+                            handleFieldChange(field.id, e.target.value, field.label)
+                          }
+                          placeholder={`Digite ${field.label.toLowerCase()}`}
+                          className="rounded-xl border-border focus:ring-ring"
+                        />
+                        {isMatriculaLabel(field.label) &&
+                          (fieldValues[field.id] || "").length > 0 && (
+                            <>
+                              {checkingMatricula && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  Verificando matrícula...
+                                </p>
+                              )}
+                              {!checkingMatricula && matriculaDuplicate && (
+                                <p className="text-xs text-destructive flex items-start gap-1">
+                                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                                  <span>
+                                    Matrícula já solicitada por{" "}
+                                    <strong>{matriculaDuplicate.createdByName}</strong> em{" "}
+                                    {matriculaDuplicate.formatted}.
+                                  </span>
+                                </p>
+                              )}
+                            </>
+                          )}
+                      </>
                     )}
+
 
                     {field.field_type === "long_text" && (
                       <Textarea
