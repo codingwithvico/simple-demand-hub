@@ -11,7 +11,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDemandTypes } from "@/hooks/useDemandTypes";
-import { Loader2, Plus, X } from "lucide-react";
+import {
+  useMatriculaCheck,
+  normalizeMatricula,
+  findMatriculaDuplicate,
+} from "@/hooks/useMatriculaCheck";
+import { toast } from "@/hooks/use-toast";
+import { Loader2, Plus, X, AlertTriangle } from "lucide-react";
+
+const isMatriculaLabel = (label: string) =>
+  label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase() === "matricula";
+
 
 interface FieldValue {
   fieldId: string;
