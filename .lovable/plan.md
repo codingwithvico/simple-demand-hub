@@ -1,73 +1,36 @@
+# Bloqueio de MATRÍCULA duplicada (perfil operador)
 
-# Plano: Kanban para Usuarios Convencionais
+Ao preencher o campo MATRÍCULA no formulário de nova demanda, o valor será normalizado e verificado no banco. Se já existir uma demanda com a mesma matrícula (em qualquer etapa: Enviadas, Em Andamento ou Finalizada), o operador é avisado de quem abriu e quando, e o botão Publicar fica bloqueado.
 
-## Resumo
+## Comportamento
 
-Substituir o componente `UserDemandsList` (lista simples) pelo mesmo layout Kanban usado no painel administrativo, mas adaptado para usuarios comuns: sem acoes de admin (assumir, concluir, excluir), exibindo apenas as demandas do proprio usuario, com posicao na fila visivel e detalhamento completo nos cards.
+1. **Normalização automática**: ao digitar/sair do campo MATRÍCULA, todos os espaços em branco (inicio, fim e internos) são removidos do valor.
+2. **Verificação de duplicidade**: com o campo preenchido, o app consulta o banco por outras demandas que já usaram a mesma matrícula.
+   - Considera demandas em qualquer status (open / in_progress / completed), sem limite de data.
+3. **Aviso ao operador**: se houver duplicata, aparece um alerta vermelho abaixo do campo, por exemplo:
+   > Matrícula já solicitada por Maria Silva em 12/05/2026 às 14:32.
+   
+   Datas e horas em formato pt-BR.
+4. **Bloqueio**: o botão "Publicar" fica desabilitado enquanto a matrícula duplicada estiver no campo. Uma verificação final acontece também no clique em Publicar (evita corrida entre dois operadores), exibindo toast de erro e cancelando o envio.
+5. Enquanto a checagem roda, um indicador discreto de "verificando..." aparece no campo.
 
-## O que muda para o usuario
+## Detalhes técnicos
 
-- A visualizacao em lista simples ("Minhas Demandas") sera substituida por um Kanban com 3 colunas:
-  - **Enviadas**: demandas com status `open`, mostrando a posicao na fila (#1, #2, etc.)
-  - **Em Andamento**: demandas com status `in_progress`, atualizadas em tempo real
-  - **Finalizadas**: demandas com status `completed` do dia atual
-- Os cards terao o mesmo nivel de detalhe do painel administrativo (tipo de demanda, campos, data, comentarios, tag de atraso)
-- Nao havera menu de acoes (assumir, concluir, excluir) nos cards -- o usuario apenas visualiza
-- Clicar no card continua abrindo o dialog de detalhes com comentarios
+- Campo alvo identificado por rótulo: `demand_type_fields.label` normalizado igual a "matricula" (sem acento/caixa), hoje o campo `MATRÍCULA` do tipo IMPORTAÇÃO. Assim funciona também se outros tipos criarem um campo com o mesmo nome.
+- Novo hook `src/hooks/useMatriculaCheck.tsx`:
+  - recebe o valor normalizado e o(s) `field_id` de matrícula;
+  - consulta `demand_field_values` com join obrigatório em `demands`:
+    `select("value, demands!inner(id, status, created_at, created_by, profiles:profiles!demands_created_by_fkey(name))")`
+    filtrando `.in("field_id", matriculaFieldIds)` e `.ilike("value", valorNormalizado)`;
+  - ordena pelo `created_at` mais recente e retorna `{ checking, duplicate }` com nome do criador e data;
+  - debounce de ~400ms para não consultar a cada tecla.
+- `src/components/DemandInput.tsx`:
+  - `handleFieldChange` remove espaços (`value.replace(/\s+/g, "")`) quando o campo é de matrícula;
+  - exibe o aviso abaixo do input e inclui `!duplicate` em `validateForm()`;
+  - `handleSubmit` refaz a checagem antes de chamar `onSubmit`.
+- Formatação com `date-fns` + locale `ptBR` (`dd/MM/yyyy 'às' HH:mm`).
+- Sem alterações de banco de dados; as políticas atuais já permitem a leitura necessária.
 
-## Arquivos a modificar
+## Observação
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/pages/Index.tsx` | Substituir `UserDemandsList` pelo `KanbanBoard` para usuarios comuns, passando as demandas ja separadas por status. Remover import do `UserDemandsList`. |
-| `src/components/KanbanBoard.tsx` | Ajustar os titulos das colunas conforme o contexto (master vs user). Quando `isMaster` for `false`, a coluna open mostra "Enviadas" em vez de "Recebidas". Garantir que a posicao na fila (`queuePosition`) apareca nos cards da coluna open. |
-
-## Detalhes tecnicos
-
-### Index.tsx
-
-O `Index.tsx` ja calcula `openDemands`, `inProgressDemands` e `completedDemands` com o `useMemo`. Atualmente, essas variaveis so sao passadas para o `KanbanBoard` quando `isMaster === true`. A mudanca e simples: passar o mesmo `KanbanBoard` para usuarios comuns tambem, mas sem as funcoes de admin (`onClaim`, `onComplete`, `onUnclaim` serao `undefined`) e com `isMaster={false}`.
-
-```typescript
-// Antes (usuario comum)
-<UserDemandsList demands={demands} />
-
-// Depois (usuario comum - mesmo KanbanBoard)
-<KanbanBoard
-  openDemands={openDemands}
-  inProgressDemands={inProgressDemands}
-  completedDemands={completedDemands}
-  onDelete={deleteDemand}
-  isMaster={false}
-/>
-```
-
-O `useDemands` ja filtra por `created_by = user.id` quando `isMaster` e `false`, entao a seguranca de dados ja esta garantida.
-
-### KanbanBoard.tsx
-
-Ajustar os titulos das colunas baseado no prop `isMaster`:
-
-- Coluna open: "Recebidas" (master) ou "Enviadas" (user)
-- Coluna in-progress: "Em Andamento" (ambos)
-- Coluna completed: "Finalizadas" (ambos)
-
-Os cards na coluna "Enviadas" devem mostrar `queuePosition` para que o usuario saiba sua posicao na fila.
-
-### Posicao na Fila
-
-A posicao na fila (`queuePosition`) ja e passada pelo `KanbanBoard` para os cards da coluna open (via `index + 1`). Isso ja funciona e mostrara ao usuario em que posicao ele esta.
-
-**Importante**: A posicao mostrada sera relativa apenas as demandas do usuario (pois o filtro `created_by` ja limita). Para mostrar a posicao real na fila global, seria necessaria uma query adicional, mas isso esta fora do escopo atual.
-
-### O que NAO muda
-
-- O componente `DemandCard` ja renderiza corretamente sem acoes de admin quando `isMaster={false}` (o menu dropdown so aparece para masters)
-- Os cards ja mostram todos os detalhes (tipo, descricao, campos, data, comentarios, tag de atraso)
-- O `DemandDetailDialog` continua funcionando ao clicar
-- O botao flutuante (FAB) para criar demandas continua no mesmo lugar
-
-### Limpeza
-
-- O componente `UserDemandsList.tsx` podera ser removido, pois nao sera mais utilizado
-- Remover o import correspondente do `Index.tsx`
+Valores antigos gravados com espaços internos não casam exatamente com o valor normalizado; a comparação usa `ilike` (sem diferenciar maiúsculas/minúsculas). Se preferir, posso normalizar também os registros já existentes numa migração.
