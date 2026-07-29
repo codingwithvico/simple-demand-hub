@@ -45,12 +45,32 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
 
   const selectedType = demandTypes.find((t) => t.id === selectedTypeId);
 
+  // Todos os ids de campos "MATRÍCULA" (de qualquer tipo de demanda)
+  const matriculaFieldIds = useMemo(
+    () =>
+      demandTypes.flatMap((t) =>
+        t.fields.filter((f) => isMatriculaLabel(f.label)).map((f) => f.id),
+      ),
+    [demandTypes],
+  );
+
+  const matriculaField = selectedType?.fields.find((f) =>
+    isMatriculaLabel(f.label),
+  );
+  const matriculaValue = matriculaField
+    ? fieldValues[matriculaField.id] || ""
+    : "";
+
+  const { checking: checkingMatricula, duplicate: matriculaDuplicate } =
+    useMatriculaCheck(matriculaValue, matriculaFieldIds);
+
   useEffect(() => {
     setFieldValues({});
   }, [selectedTypeId]);
 
-  const handleFieldChange = (fieldId: string, value: string) => {
-    setFieldValues((prev) => ({ ...prev, [fieldId]: value }));
+  const handleFieldChange = (fieldId: string, value: string, label?: string) => {
+    const next = label && isMatriculaLabel(label) ? normalizeMatricula(value) : value;
+    setFieldValues((prev) => ({ ...prev, [fieldId]: next }));
   };
 
   const validateForm = (): boolean => {
@@ -61,6 +81,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
         if (!value) return false;
       }
     }
+    if (matriculaDuplicate || checkingMatricula) return false;
     return true;
   };
 
@@ -73,6 +94,20 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
     if (!validateForm() || !selectedTypeId) return;
     setIsSubmitting(true);
 
+    // Revalidação final da matrícula (evita corrida entre operadores)
+    if (matriculaValue) {
+      const dup = await findMatriculaDuplicate(matriculaValue, matriculaFieldIds);
+      if (dup) {
+        toast({
+          title: "Matrícula já solicitada",
+          description: `Aberta por ${dup.createdByName} em ${dup.formatted}.`,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     const values: FieldValue[] = Object.entries(fieldValues)
       .filter(([_, value]) => value.trim())
       .map(([fieldId, value]) => ({ fieldId, value: value.trim() }));
@@ -83,6 +118,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
     setIsSubmitting(false);
     setIsOpen(false);
   };
+
 
   const handleClose = () => {
     setIsOpen(false);
