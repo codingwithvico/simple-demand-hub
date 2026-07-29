@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDemandTypes } from "@/hooks/useDemandTypes";
-import { Loader2, Plus, X } from "lucide-react";
+import {
+  useMatriculaCheck,
+  normalizeMatricula,
+  findMatriculaDuplicate,
+} from "@/hooks/useMatriculaCheck";
+import { toast } from "@/hooks/use-toast";
+import { Loader2, Plus, X, AlertTriangle } from "lucide-react";
+
+const isMatriculaLabel = (label: string) =>
+  label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase() === "matricula";
+
 
 interface FieldValue {
   fieldId: string;
@@ -31,12 +45,32 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
 
   const selectedType = demandTypes.find((t) => t.id === selectedTypeId);
 
+  // Todos os ids de campos "MATRÍCULA" (de qualquer tipo de demanda)
+  const matriculaFieldIds = useMemo(
+    () =>
+      demandTypes.flatMap((t) =>
+        t.fields.filter((f) => isMatriculaLabel(f.label)).map((f) => f.id),
+      ),
+    [demandTypes],
+  );
+
+  const matriculaField = selectedType?.fields.find((f) =>
+    isMatriculaLabel(f.label),
+  );
+  const matriculaValue = matriculaField
+    ? fieldValues[matriculaField.id] || ""
+    : "";
+
+  const { checking: checkingMatricula, duplicate: matriculaDuplicate } =
+    useMatriculaCheck(matriculaValue, matriculaFieldIds);
+
   useEffect(() => {
     setFieldValues({});
   }, [selectedTypeId]);
 
-  const handleFieldChange = (fieldId: string, value: string) => {
-    setFieldValues((prev) => ({ ...prev, [fieldId]: value }));
+  const handleFieldChange = (fieldId: string, value: string, label?: string) => {
+    const next = label && isMatriculaLabel(label) ? normalizeMatricula(value) : value;
+    setFieldValues((prev) => ({ ...prev, [fieldId]: next }));
   };
 
   const validateForm = (): boolean => {
@@ -47,6 +81,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
         if (!value) return false;
       }
     }
+    if (matriculaDuplicate || checkingMatricula) return false;
     return true;
   };
 
@@ -59,6 +94,20 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
     if (!validateForm() || !selectedTypeId) return;
     setIsSubmitting(true);
 
+    // Revalidação final da matrícula (evita corrida entre operadores)
+    if (matriculaValue) {
+      const dup = await findMatriculaDuplicate(matriculaValue, matriculaFieldIds);
+      if (dup) {
+        toast({
+          title: "Matrícula já solicitada",
+          description: `Aberta por ${dup.createdByName} em ${dup.formatted}.`,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     const values: FieldValue[] = Object.entries(fieldValues)
       .filter(([_, value]) => value.trim())
       .map(([fieldId, value]) => ({ fieldId, value: value.trim() }));
@@ -69,6 +118,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
     setIsSubmitting(false);
     setIsOpen(false);
   };
+
 
   const handleClose = () => {
     setIsOpen(false);
@@ -93,9 +143,7 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
     <div className="fixed bottom-6 right-6 z-50 w-[420px] max-h-[80vh] bg-card border border-border rounded-xl shadow-2xl flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-primary rounded-t-xl">
-        <h3 className="text-sm font-semibold text-primary-foreground">
-          Nova Demanda
-        </h3>
+        <h3 className="text-sm font-semibold text-primary-foreground">Nova Demanda</h3>
         <button
           onClick={handleClose}
           className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
@@ -118,29 +166,14 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
         ) : (
           <>
             <div className="space-y-2">
-              <Label
-                htmlFor="demand-type"
-                className="text-foreground text-sm font-medium"
-              >
+              <Label htmlFor="demand-type" className="text-foreground text-sm font-medium">
                 Tipo de Demanda
               </Label>
-              <Select
-                key={demandTypes.length}
-                value={selectedTypeId}
-                onValueChange={setSelectedTypeId}
-              >
-                <SelectTrigger
-                  id="demand-type"
-                  className="rounded-xl border-border focus:ring-ring"
-                >
+              <Select key={demandTypes.length} value={selectedTypeId} onValueChange={setSelectedTypeId}>
+                <SelectTrigger id="demand-type" className="rounded-xl border-border focus:ring-ring">
                   <SelectValue placeholder="Selecione o tipo de demanda" />
                 </SelectTrigger>
-                <SelectContent
-                  className="rounded-xl notranslate"
-                  position="popper"
-                  sideOffset={4}
-                  translate="no"
-                >
+                <SelectContent className="rounded-xl notranslate" position="popper" sideOffset={4} translate="no">
                   {demandTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id}>
                       <span translate="no">{type.name}</span>
@@ -154,35 +187,52 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
               <div className="space-y-4 pt-3 border-t border-border">
                 {selectedType.fields.map((field) => (
                   <div key={field.id} className="space-y-2">
-                    <Label
-                      htmlFor={field.id}
-                      className="text-foreground text-sm font-medium"
-                    >
+                    <Label htmlFor={field.id} className="text-foreground text-sm font-medium">
                       {field.label}
-                      {field.required && (
-                        <span className="text-red-500 ml-1">*</span>
-                      )}
+                      {field.required && <span className="text-red-500 ml-1">*</span>}
                     </Label>
 
                     {field.field_type === "short_text" && (
-                      <Input
-                        id={field.id}
-                        value={fieldValues[field.id] || ""}
-                        onChange={(e) =>
-                          handleFieldChange(field.id, e.target.value)
-                        }
-                        placeholder={`Digite ${field.label.toLowerCase()}`}
-                        className="rounded-xl border-border focus:ring-ring"
-                      />
+                      <>
+                        <Input
+                          id={field.id}
+                          value={fieldValues[field.id] || ""}
+                          onChange={(e) =>
+                            handleFieldChange(field.id, e.target.value, field.label)
+                          }
+                          placeholder={`Digite ${field.label.toLowerCase()}`}
+                          className="rounded-xl border-border focus:ring-ring"
+                        />
+                        {isMatriculaLabel(field.label) &&
+                          (fieldValues[field.id] || "").length > 0 && (
+                            <>
+                              {checkingMatricula && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  Verificando matrícula...
+                                </p>
+                              )}
+                              {!checkingMatricula && matriculaDuplicate && (
+                                <p className="text-xs text-destructive flex items-start gap-1">
+                                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                                  <span>
+                                    Matrícula já solicitada por{" "}
+                                    <strong>{matriculaDuplicate.createdByName}</strong> em{" "}
+                                    {matriculaDuplicate.formatted}.
+                                  </span>
+                                </p>
+                              )}
+                            </>
+                          )}
+                      </>
                     )}
+
 
                     {field.field_type === "long_text" && (
                       <Textarea
                         id={field.id}
                         value={fieldValues[field.id] || ""}
-                        onChange={(e) =>
-                          handleFieldChange(field.id, e.target.value)
-                        }
+                        onChange={(e) => handleFieldChange(field.id, e.target.value)}
                         placeholder={`Digite ${field.label.toLowerCase()}`}
                         rows={3}
                         className="rounded-xl border-border focus:ring-ring"
@@ -193,21 +243,12 @@ const DemandInput = ({ onSubmit }: DemandInputProps) => {
                       <Select
                         key={`${field.id}-${field.options.length}`}
                         value={fieldValues[field.id] || ""}
-                        onValueChange={(value) =>
-                          handleFieldChange(field.id, value)
-                        }
+                        onValueChange={(value) => handleFieldChange(field.id, value)}
                       >
                         <SelectTrigger className="rounded-xl border-border focus:ring-ring">
-                          <SelectValue
-                            placeholder={`Selecione ${field.label.toLowerCase()}`}
-                          />
+                          <SelectValue placeholder={`Selecione ${field.label.toLowerCase()}`} />
                         </SelectTrigger>
-                        <SelectContent
-                          className="rounded-xl notranslate"
-                          position="popper"
-                          sideOffset={4}
-                          translate="no"
-                        >
+                        <SelectContent className="rounded-xl notranslate" position="popper" sideOffset={4} translate="no">
                           {field.options.map((option) => (
                             <SelectItem key={option} value={option}>
                               <span translate="no">{option}</span>

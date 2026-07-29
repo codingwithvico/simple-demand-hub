@@ -56,13 +56,11 @@ const Index = () => {
 
     // Separa por status
     const open = demandsWithDelay.filter((d) => d.status === "open");
-    const inProgress = demandsWithDelay.filter(
-      (d) => d.status === "in_progress",
-    );
+    const inProgress = demandsWithDelay.filter((d) => d.status === "in_progress");
     const completed = demandsWithDelay.filter((d) => d.status === "completed");
 
     // Ordena: atrasadas primeiro (por created_at asc), depois do dia (por created_at asc)
-    const sortByDelay = (a: (typeof open)[0], b: (typeof open)[0]) => {
+    const sortByDelay = (a: typeof open[0], b: typeof open[0]) => {
       if (a.isDelayed && !b.isDelayed) return -1;
       if (!a.isDelayed && b.isDelayed) return 1;
       return a.created_at.getTime() - b.created_at.getTime();

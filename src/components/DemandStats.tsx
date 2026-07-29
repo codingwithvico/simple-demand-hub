@@ -125,9 +125,7 @@ export function DemandStats() {
       {/* Estatísticas */}
       {!hasFiltered ? (
         <div className="text-center py-8 text-muted-foreground">
-          <p className="text-sm">
-            Selecione um período ou clique em "Hoje" para ver os relatórios
-          </p>
+          <p className="text-sm">Selecione um período ou clique em "Hoje" para ver os relatórios</p>
         </div>
       ) : stats ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

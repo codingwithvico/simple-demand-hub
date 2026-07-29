@@ -40,7 +40,7 @@ export const useUsers = (autoFetch: boolean = false) => {
     }
 
     setUsers(
-      (data || []).map((u) => ({
+      (data || []).map((u: any) => ({
         id: u.id,
         name: u.name,
         email: u.email,
@@ -87,7 +87,7 @@ export const useUsers = (autoFetch: boolean = false) => {
       toast({ title: "Usuário criado com sucesso" });
       await fetchUsers();
       return true;
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro ao criar usuário",
         description: error.message,

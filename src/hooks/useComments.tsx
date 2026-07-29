@@ -23,16 +23,14 @@ export const useComments = (demandId: string | null) => {
 
       const { data, error } = await supabase
         .from("demand_comments")
-        .select(
-          `
+        .select(`
           id,
           demand_id,
           user_id,
           content,
           created_at,
           profiles!demand_comments_user_id_fkey(name)
-        `,
-        )
+        `)
         .eq("demand_id", demandId)
         .order("created_at", { ascending: true });
 
@@ -44,21 +42,14 @@ export const useComments = (demandId: string | null) => {
         user_id: comment.user_id,
         content: comment.content,
         created_at: comment.created_at,
-        user_name:
-          (comment.profiles as { name: string } | null)?.name || "Anônimo",
+        user_name: (comment.profiles as { name: string } | null)?.name || "Anônimo",
       }));
     },
     enabled: !!demandId,
   });
 
   const addCommentMutation = useMutation({
-    mutationFn: async ({
-      demandId,
-      content,
-    }: {
-      demandId: string;
-      content: string;
-    }) => {
+    mutationFn: async ({ demandId, content }: { demandId: string; content: string }) => {
       if (!user?.id) throw new Error("Usuário não autenticado");
 
       const { data, error } = await supabase
@@ -101,32 +92,26 @@ export const useLastComments = (demandIds: string[]) => {
 
       const { data, error } = await supabase
         .from("demand_comments")
-        .select(
-          `
+        .select(`
           id,
           demand_id,
           content,
           created_at,
           profiles!demand_comments_user_id_fkey(name)
-        `,
-        )
+        `)
         .in("demand_id", demandIds)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       // Agrupa por demand_id e pega apenas o primeiro (mais recente)
-      const lastCommentByDemand: Record<
-        string,
-        { content: string; user_name: string; created_at: string }
-      > = {};
-
+      const lastCommentByDemand: Record<string, { content: string; user_name: string; created_at: string }> = {};
+      
       for (const comment of data || []) {
         if (!lastCommentByDemand[comment.demand_id]) {
           lastCommentByDemand[comment.demand_id] = {
             content: comment.content,
-            user_name:
-              (comment.profiles as { name: string } | null)?.name || "Anônimo",
+            user_name: (comment.profiles as { name: string } | null)?.name || "Anônimo",
             created_at: comment.created_at,
           };
         }

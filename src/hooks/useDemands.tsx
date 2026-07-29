@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DemandWithProfile } from "@/types/demand";
-import { Database } from "@/integrations/supabase/types";
 import { useAuth } from "./useAuth";
 import { toast } from "@/hooks/use-toast";
-
-type DemandRow = Database["public"]["Tables"]["demands"]["Row"];
 
 interface FieldValue {
   fieldId: string;
@@ -166,7 +163,7 @@ export const useDemands = (
       return;
     }
 
-    const mapped: DemandWithProfile[] = (data || []).map((d) => ({
+    const mapped: DemandWithProfile[] = (data || []).map((d: any) => ({
       id: d.id,
       description: d.description,
       title: d.title,
@@ -202,7 +199,7 @@ export const useDemands = (
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "demands" },
         async (payload) => {
-          const newDemand = payload.new as DemandRow;
+          const newDemand = payload.new as any;
           // Notifica apenas admins/masters quando uma nova demanda é criada
           // e não é o próprio usuário que criou
           if (newDemand.created_by !== user?.id && isMaster) {
@@ -259,8 +256,8 @@ export const useDemands = (
         { event: "UPDATE", schema: "public", table: "demands" },
         async (payload) => {
           // Para UPDATE, atualiza apenas o card específico
-          const updated = payload.new as DemandRow;
-          const oldData = payload.old as Partial<DemandRow>;
+          const updated = payload.new as any;
+          const oldData = payload.old as any;
 
           // Busca a demanda atual do estado para comparar
           // (oldData do realtime pode não ter todos os campos sem REPLICA IDENTITY FULL)
@@ -378,7 +375,7 @@ export const useDemands = (
         { event: "DELETE", schema: "public", table: "demands" },
         (payload) => {
           // Remove o card deletado
-          const deleted = payload.old as Partial<DemandRow>;
+          const deleted = payload.old as any;
           setDemands((prev) => prev.filter((d) => d.id !== deleted.id));
         },
       )

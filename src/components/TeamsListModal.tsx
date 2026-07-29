@@ -60,9 +60,7 @@ export const TeamsListModal = () => {
                     )}
                     <Switch
                       checked={team.notification_sound_enabled}
-                      onCheckedChange={(checked) =>
-                        updateTeamSound(team.id, checked)
-                      }
+                      onCheckedChange={(checked) => updateTeamSound(team.id, checked)}
                       aria-label="Som de notificação"
                     />
                   </div>

@@ -32,7 +32,7 @@ export const useTeams = (autoFetch: boolean = false) => {
     }
 
     setTeams(
-      (data || []).map((t) => ({
+      (data || []).map((t: any) => ({
         id: t.id,
         name: t.name,
         created_at: new Date(t.created_at!),
@@ -102,12 +102,5 @@ export const useTeams = (autoFetch: boolean = false) => {
     return true;
   };
 
-  return {
-    teams,
-    loading,
-    createTeam,
-    deleteTeam,
-    updateTeamSound,
-    refetch: fetchTeams,
-  };
+  return { teams, loading, createTeam, deleteTeam, updateTeamSound, refetch: fetchTeams };
 };

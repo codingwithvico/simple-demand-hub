@@ -35,7 +35,7 @@ const DemandDetailDialog = ({
 }: DemandDetailDialogProps) => {
   const [newComment, setNewComment] = useState("");
   const { comments, isLoading, addComment, isAddingComment } = useComments(
-    demand?.id || null,
+    demand?.id || null
   );
 
   if (!demand) return null;
@@ -50,7 +50,7 @@ const DemandDetailDialog = ({
       { demandId: demand.id, content: newComment.trim() },
       {
         onSuccess: () => setNewComment(""),
-      },
+      }
     );
   };
 
@@ -74,13 +74,10 @@ const DemandDetailDialog = ({
             <div className="flex items-center gap-2 flex-wrap text-sm">
               <Badge variant={config.variant}>{config.label}</Badge>
               <span className="text-muted-foreground">
-                Criada por{" "}
-                <strong>{demand.created_by_name || "Anônimo"}</strong>
+                Criada por <strong>{demand.created_by_name || "Anônimo"}</strong>
               </span>
               {demand.team_name && (
-                <span className="text-muted-foreground">
-                  • {demand.team_name}
-                </span>
+                <span className="text-muted-foreground">• {demand.team_name}</span>
               )}
               <span className="text-muted-foreground">
                 •{" "}

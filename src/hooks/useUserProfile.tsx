@@ -45,7 +45,7 @@ export const useUserProfile = () => {
         id: data.id,
         name: data.name,
         team_id: data.team_id,
-        team_name: data.team?.name || null,
+        team_name: (data.team as any)?.name || null,
       });
       setLoading(false);
     };
