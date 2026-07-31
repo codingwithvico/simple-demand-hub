@@ -25,7 +25,7 @@ const formatCurrentDate = () => {
 
 const Index = () => {
   const { signOut } = useAuth();
-  const { isMaster } = useUserRole();
+  const { isMaster, loading: roleLoading } = useUserRole();
   const { profile } = useUserProfile();
   const { notificationSoundEnabled } = useUserTeamSettings();
   const {
@@ -39,7 +39,8 @@ const Index = () => {
     completeDemand,
     unclaimDemand,
     deleteDemand,
-  } = useDemands(notificationSoundEnabled, isMaster);
+  } = useDemands(notificationSoundEnabled, isMaster, !roleLoading);
+
 
   // Solicita permissão para notificações do navegador ao carregar
   useEffect(() => {

@@ -100,8 +100,10 @@ const sendBrowserNotification = (title: string, body: string) => {
 export const useDemands = (
   teamSoundEnabled: boolean = true,
   isMaster: boolean = false,
+  ready: boolean = true,
 ) => {
   const { user } = useAuth();
+
   const [demands, setDemands] = useState<DemandWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState<string | null>(null);
@@ -189,13 +191,52 @@ export const useDemands = (
     setLoading(false);
   }, [isMaster, user?.id]);
 
+  // Mantém uma referência estável para o fetch (evita recriar o canal)
+  const fetchRef = useRef(fetchDemands);
+  fetchRef.current = fetchDemands;
+
+  // Refaz a busca quando fetchDemands muda (usuário/papel resolvidos)
+  useEffect(() => {
+    if (!ready) return;
+    fetchDemands();
+  }, [ready, fetchDemands]);
+
   // Real-time subscription - atualiza apenas o card alterado
   useEffect(() => {
-    fetchDemands();
+    if (!ready) return;
 
-    const channel = supabase
-      .channel("demands-realtime")
-      .on(
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+    let retryAttempt = 0;
+    let disposed = false;
+
+    const backoffDelays = [1000, 2000, 5000, 10000, 30000];
+
+    const scheduleReconnect = () => {
+      if (disposed || retryTimeout) return;
+      const delay =
+        backoffDelays[Math.min(retryAttempt, backoffDelays.length - 1)];
+      retryAttempt += 1;
+      retryTimeout = setTimeout(() => {
+        retryTimeout = null;
+        if (disposed) return;
+        teardownChannel();
+        setupChannel();
+      }, delay);
+    };
+
+    const teardownChannel = () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+        channel = null;
+      }
+    };
+
+    const setupChannel = () => {
+      channel = supabase
+        .channel(`demands-realtime-${Math.random().toString(36).slice(2)}`)
+        .on(
+
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "demands" },
         async (payload) => {
@@ -248,7 +289,8 @@ export const useDemands = (
             });
           }
           // Para INSERT, refetch para pegar os dados completos com profiles
-          fetchDemands();
+          fetchRef.current();
+
         },
       )
       .on(
@@ -346,6 +388,12 @@ export const useDemands = (
             });
           }
 
+          // Se a demanda não está na lista local (INSERT perdido), rebusca
+          if (!currentDemand) {
+            fetchRef.current();
+            return;
+          }
+
           setDemands((prev) =>
             prev.map((d) =>
               d.id === updated.id
@@ -379,12 +427,52 @@ export const useDemands = (
           setDemands((prev) => prev.filter((d) => d.id !== deleted.id));
         },
       )
-      .subscribe();
+        .subscribe((status) => {
+          if (disposed) return;
+          if (status === "SUBSCRIBED") {
+            // Fecha a janela cega entre a busca inicial e a conexão do canal
+            retryAttempt = 0;
+            fetchRef.current();
+          } else if (
+            status === "CHANNEL_ERROR" ||
+            status === "TIMED_OUT" ||
+            status === "CLOSED"
+          ) {
+            scheduleReconnect();
+          }
+        });
+    };
+
+    setupChannel();
+
+    // Rebusca ao voltar para a aba ou quando a internet retorna
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchRef.current();
+      }
+    };
+    const handleOnline = () => fetchRef.current();
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("online", handleOnline);
+
+    // Rede de segurança: rebusca periódica enquanto a aba está visível
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchRef.current();
+      }
+    }, 60000);
 
     return () => {
-      supabase.removeChannel(channel);
+      disposed = true;
+      if (retryTimeout) clearTimeout(retryTimeout);
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("online", handleOnline);
+      teardownChannel();
     };
-  }, [fetchDemands, teamSoundEnabled, user?.id, isMaster]);
+  }, [ready, teamSoundEnabled, user?.id, isMaster]);
+
 
   const createDemand = async (data: CreateDemandData) => {
     if (!user) return;
