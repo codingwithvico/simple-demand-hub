@@ -19,6 +19,9 @@ export const findMatriculaDuplicate = async (
   const normalized = normalizeMatricula(value);
   if (!normalized || fieldIds.length === 0) return null;
 
+  // Bloqueio válido apenas para solicitações feitas nas últimas 24h
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
   const { data: values, error } = await supabase
     .from("demand_field_values")
     .select("demand_id")
@@ -43,6 +46,7 @@ export const findMatriculaDuplicate = async (
     )
     .in("id", demandIds)
     .in("status", ["open", "in_progress", "completed"])
+    .gte("created_at", since)
     .order("created_at", { ascending: false })
     .limit(1);
 
