@@ -287,7 +287,8 @@ export const useDemands = (
             });
           }
           // Para INSERT, refetch para pegar os dados completos com profiles
-          fetchDemands();
+          fetchRef.current();
+
         },
       )
       .on(
