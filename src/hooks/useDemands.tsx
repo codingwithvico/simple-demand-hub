@@ -385,6 +385,12 @@ export const useDemands = (
             });
           }
 
+          // Se a demanda não está na lista local (INSERT perdido), rebusca
+          if (!currentDemand) {
+            fetchRef.current();
+            return;
+          }
+
           setDemands((prev) =>
             prev.map((d) =>
               d.id === updated.id
@@ -418,12 +424,52 @@ export const useDemands = (
           setDemands((prev) => prev.filter((d) => d.id !== deleted.id));
         },
       )
-      .subscribe();
+        .subscribe((status) => {
+          if (disposed) return;
+          if (status === "SUBSCRIBED") {
+            // Fecha a janela cega entre a busca inicial e a conexão do canal
+            retryAttempt = 0;
+            fetchRef.current();
+          } else if (
+            status === "CHANNEL_ERROR" ||
+            status === "TIMED_OUT" ||
+            status === "CLOSED"
+          ) {
+            scheduleReconnect();
+          }
+        });
+    };
+
+    setupChannel();
+
+    // Rebusca ao voltar para a aba ou quando a internet retorna
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchRef.current();
+      }
+    };
+    const handleOnline = () => fetchRef.current();
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("online", handleOnline);
+
+    // Rede de segurança: rebusca periódica enquanto a aba está visível
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchRef.current();
+      }
+    }, 60000);
 
     return () => {
-      supabase.removeChannel(channel);
+      disposed = true;
+      if (retryTimeout) clearTimeout(retryTimeout);
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("online", handleOnline);
+      teardownChannel();
     };
-  }, [fetchDemands, teamSoundEnabled, user?.id, isMaster]);
+  }, [ready, teamSoundEnabled, user?.id, isMaster]);
+
 
   const createDemand = async (data: CreateDemandData) => {
     if (!user) return;
