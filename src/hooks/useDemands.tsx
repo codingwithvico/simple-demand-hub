@@ -100,8 +100,10 @@ const sendBrowserNotification = (title: string, body: string) => {
 export const useDemands = (
   teamSoundEnabled: boolean = true,
   isMaster: boolean = false,
+  ready: boolean = true,
 ) => {
   const { user } = useAuth();
+
   const [demands, setDemands] = useState<DemandWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState<string | null>(null);
