@@ -46,6 +46,7 @@ export const findMatriculaDuplicate = async (
     )
     .in("id", demandIds)
     .in("status", ["open", "in_progress", "completed"])
+    .gte("created_at", since)
     .order("created_at", { ascending: false })
     .limit(1);
 
