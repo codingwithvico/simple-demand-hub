@@ -189,12 +189,51 @@ export const useDemands = (
     setLoading(false);
   }, [isMaster, user?.id]);
 
+  // Mantém uma referência estável para o fetch (evita recriar o canal)
+  const fetchRef = useRef(fetchDemands);
+  fetchRef.current = fetchDemands;
+
+  // Refaz a busca quando fetchDemands muda (usuário/papel resolvidos)
+  useEffect(() => {
+    if (!ready) return;
+    fetchDemands();
+  }, [ready, fetchDemands]);
+
   // Real-time subscription - atualiza apenas o card alterado
   useEffect(() => {
-    fetchDemands();
+    if (!ready) return;
 
-    const channel = supabase
-      .channel("demands-realtime")
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+    let retryAttempt = 0;
+    let disposed = false;
+
+    const backoffDelays = [1000, 2000, 5000, 10000, 30000];
+
+    const scheduleReconnect = () => {
+      if (disposed || retryTimeout) return;
+      const delay =
+        backoffDelays[Math.min(retryAttempt, backoffDelays.length - 1)];
+      retryAttempt += 1;
+      retryTimeout = setTimeout(() => {
+        retryTimeout = null;
+        if (disposed) return;
+        teardownChannel();
+        setupChannel();
+      }, delay);
+    };
+
+    const teardownChannel = () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+        channel = null;
+      }
+    };
+
+    const setupChannel = () => {
+      channel = supabase
+        .channel(`demands-realtime-${Math.random().toString(36).slice(2)}`)
+
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "demands" },
